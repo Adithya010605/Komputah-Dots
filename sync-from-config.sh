@@ -54,7 +54,6 @@ cp /home/adi/.config/nvim/lua/plugins/colorscheme.lua "$ROOT/.config/nvim/lua/pl
 cp /home/adi/.config/rofi/config.rasi "$ROOT/.config/rofi/"
 cp /home/adi/.config/rofi/icons/clipboard-text.svg "$ROOT/.config/rofi/icons/"
 cp /home/adi/.config/rofi/scripts/clipboard.sh "$ROOT/.config/rofi/scripts/"
-cp /home/adi/.config/rofi/scripts/emoji-selector.sh "$ROOT/.config/rofi/scripts/"
 cp /home/adi/.config/rofi/scripts/power-menu.sh "$ROOT/.config/rofi/scripts/"
 cp /home/adi/.config/rofi/scripts/wallpaper-picker.sh "$ROOT/.config/rofi/scripts/"
 cp /home/adi/.config/rofi/themes/glass.rasi "$ROOT/.config/rofi/themes/"
