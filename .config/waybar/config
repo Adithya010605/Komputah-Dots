@@ -99,8 +99,8 @@
   "backlight": {
     "format": "{icon}  {percent}%",
     "format-icons": ["󰃞", "󰃟", "󰃠"],
-    "on-scroll-up": "brightnessctl -d amdgpu_bl1 -e4 -n2 set 5%+",
-    "on-scroll-down": "brightnessctl -d amdgpu_bl1 -e4 -n2 set 5%-",
+    "on-scroll-up": "brightnessctl -e4 -n2 set 5%+",
+    "on-scroll-down": "brightnessctl -e4 -n2 set 5%-",
     "smooth-scrolling-threshold": 0.2,
     "tooltip": false
   },
@@ -111,8 +111,8 @@
     "format-off": "󰂲",
     "format-connected": "󰂱 {num_connections}",
     "format-connected-battery": "󰂱 {device_alias} {device_battery_percentage}%",
-    "on-click": "sh -lc '/home/adi/.config/waybar/scripts/bluetooth_toggle.sh'",
-    "on-click-right": "sh -lc '/home/adi/.config/waybar/scripts/bluetooth_manager.sh'",
+    "on-click": "sh -lc '~/.config/waybar/scripts/bluetooth_toggle.sh'",
+    "on-click-right": "sh -lc '~/.config/waybar/scripts/bluetooth_manager.sh'",
     "tooltip": false
   },
 
