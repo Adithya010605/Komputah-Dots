@@ -14,7 +14,6 @@ mkdir -p \
   "$ROOT/.config/rofi/icons" \
   "$ROOT/.config/rofi/scripts" \
   "$ROOT/.config/rofi/themes" \
-  "$ROOT/.config/quickshell" \
   "$ROOT/.config/waybar/scripts"
 
 rm -rf \
@@ -23,7 +22,6 @@ rm -rf \
   "$ROOT/.config/mako" \
   "$ROOT/.config/nvim" \
   "$ROOT/.config/rofi" \
-  "$ROOT/.config/quickshell" \
   "$ROOT/.config/waybar"
 
 mkdir -p \
@@ -35,7 +33,6 @@ mkdir -p \
   "$ROOT/.config/rofi/icons" \
   "$ROOT/.config/rofi/scripts" \
   "$ROOT/.config/rofi/themes" \
-  "$ROOT/.config/quickshell" \
   "$ROOT/.config/waybar/scripts"
 
 cp "$SOURCE_HOME/.config/hypr/hypridle.conf" "$ROOT/.config/hypr/"
@@ -47,8 +44,6 @@ cp -r "$SOURCE_HOME/.config/hypr/shaders" "$ROOT/.config/hypr/"
 
 cp "$SOURCE_HOME/.config/kitty/kitty.conf" "$ROOT/.config/kitty/"
 cp "$SOURCE_HOME/.config/mako/config" "$ROOT/.config/mako/"
-
-cp -r "$SOURCE_HOME/.config/quickshell/." "$ROOT/.config/quickshell/"
 
 cp "$SOURCE_HOME/.config/nvim/init.lua" "$ROOT/.config/nvim/"
 cp "$SOURCE_HOME/.config/nvim/lazy-lock.json" "$ROOT/.config/nvim/"

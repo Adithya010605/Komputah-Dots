@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP_ROOT="${HOME}/.config-backups/komputah-dots-$(date +%Y%m%d-%H%M%S)"
 WALL_DIR="${HOME}/walls"
 DEFAULT_WALL="${WALL_DIR}/komputah-default.png"
-TARGET_CONFIGS=(hypr kitty mako nvim quickshell rofi waybar)
+TARGET_CONFIGS=(hypr kitty mako nvim rofi waybar)
 
 PACMAN_PACKAGES=(
   base-devel
@@ -47,7 +47,6 @@ PACMAN_PACKAGES=(
 AUR_PACKAGES=(
   hyprshade
   python-pywal16-git
-  quickshell
 )
 
 log() {
@@ -126,7 +125,6 @@ make_scripts_executable() {
   find "${HOME}/.config/hypr/scripts" -type f -name '*.sh' -exec chmod +x {} +
   find "${HOME}/.config/rofi/scripts" -type f -name '*.sh' -exec chmod +x {} +
   find "${HOME}/.config/waybar/scripts" -type f -name '*.sh' -exec chmod +x {} +
-  find "${HOME}/.config/quickshell" -type f -name '*.sh' -exec chmod +x {} +
 }
 
 create_default_wallpaper() {
