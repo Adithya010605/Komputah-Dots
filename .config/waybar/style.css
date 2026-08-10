@@ -1,0 +1,153 @@
+/* Alternative pill-style theme (keeps existing style.css untouched) */
+@import "../../.cache/wal/colors-waybar.css";
+
+* {
+  font-family: "GeistMono Nerd Font";
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  min-height: 0;
+  color: white;
+}
+
+window#waybar {
+  background: transparent;
+  color: white;
+}
+
+.modules-center {
+  background: rgba(20, 20, 28, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 9px;
+}
+
+#workspaces,
+#window,
+#custom-mpris,
+#clock,
+#custom-pomo,
+#pulseaudio,
+#custom-mic,
+#backlight,
+#bluetooth,
+#custom-memorypie,
+#battery,
+#tray {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  margin: 0 5px;
+  padding: 3px 12px;
+  color: white;
+}
+
+#workspaces {
+  padding: 2px 9px;
+}
+
+#window {
+  padding: 3px 13px;
+}
+
+#custom-separator {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 2px;
+  padding: 0 2px;
+}
+
+#workspaces button {
+  background: transparent;
+  color: white;
+  padding: 0 5px;
+  margin: 0;
+  border-radius: 999px;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  transition: color 140ms ease;
+}
+
+#workspaces button.active,
+#workspaces button.focused,
+#workspaces button.visible {
+  background: transparent;
+  border: none;
+  color: alpha(@color12, 0.72);
+  text-shadow: none;
+  box-shadow: none;
+}
+
+#workspaces button.active label,
+#workspaces button.focused label,
+#workspaces button.visible label,
+#workspaces button.active .workspace-label,
+#workspaces button.focused .workspace-label,
+#workspaces button.visible .workspace-label {
+  color: alpha(@color12, 0.72);
+}
+
+#workspaces button:hover {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: white;
+}
+
+#workspaces button.empty {
+  color: white;
+}
+
+#workspaces button.empty label,
+#workspaces button.empty .workspace-label {
+  color: white;
+}
+
+#tray {
+  padding: 3px 11px;
+}
+
+#tray > .item image {
+  min-width: 17px;
+  min-height: 17px;
+}
+
+#custom-mpris {
+  padding: 3px 13px;
+}
+
+#custom-mpris:hover,
+#window:hover,
+#clock:hover,
+#custom-pomo:hover,
+#pulseaudio:hover,
+#custom-mic:hover,
+#backlight:hover,
+#bluetooth:hover,
+#custom-memorypie:hover,
+#battery:hover,
+#tray:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+#backlight {
+  color: white;
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.18);
+}
+
+#backlight:hover {
+  animation: sunPulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes sunPulse {
+  0% {
+    color: white;
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.12);
+  }
+  100% {
+    color: white;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.34);
+  }
+}

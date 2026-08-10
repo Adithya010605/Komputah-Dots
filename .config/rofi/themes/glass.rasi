@@ -1,0 +1,143 @@
+/* Frosted pill-style Rofi theme aligned with Waybar pill look */
+@import "~/.cache/wal/colors-rofi-dark.rasi"
+
+* {
+    font: "GeistMono Nerd Font 15px";
+}
+
+window {
+    transparency: "real";
+    location: center;
+    anchor: center;
+    width: 26%;
+    border: 1px;
+    border-color: rgba(255, 255, 255, 0.22);
+    border-radius: 24px;
+    background-color: rgba(20, 20, 28, 0.36);
+    padding: 9px;
+}
+
+mainbox {
+    background-color: transparent;
+    spacing: 8px;
+    children: [ inputbar, listview ];
+}
+
+inputbar {
+    background-color: rgba(255, 255, 255, 0.14);
+    border: 1px;
+    border-color: rgba(255, 255, 255, 0.24);
+    border-radius: 999px;
+    padding: 8px 14px;
+    spacing: 10px;
+    children: [ entry ];
+}
+
+prompt {
+    enabled: false;
+}
+
+entry {
+    background-color: transparent;
+    text-color: @foreground;
+    placeholder: "Search apps...";
+    placeholder-color: rgba(255, 255, 255, 0.55);
+    expand: true;
+}
+
+listview {
+    background-color: transparent;
+    border: 0;
+    padding: 2px;
+    margin: 0;
+    spacing: 10px;
+    columns: 1;
+    lines: 8;
+    cycle: true;
+    dynamic: true;
+    fixed-height: false;
+    layout: vertical;
+    scrollbar: false;
+}
+
+element {
+    orientation: horizontal;
+    children: [ element-icon, element-text ];
+    background-color: rgba(255, 255, 255, 0.14);
+    border: 1px;
+    border-color: rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    padding: 8px 12px;
+    margin: 0;
+    spacing: 10px;
+    text-color: @foreground;
+}
+
+element-icon {
+    background-color: transparent;
+    size: 1.1em;
+}
+
+element-text {
+    background-color: transparent;
+    text-color: inherit;
+    highlight: none;
+    expand: true;
+    vertical-align: 0.5;
+    format: "{text}";
+}
+
+element normal.normal {
+    background-color: rgba(255, 255, 255, 0.14);
+    text-color: @foreground;
+}
+
+element selected.normal {
+    background-color: @selected-normal-background;
+    border: 2px;
+    border-color: rgba(255, 255, 255, 0.30);
+    text-color: @selected-normal-foreground;
+}
+
+element normal.active {
+    background-color: @active-background;
+    border: 2px;
+    border-color: rgba(255, 255, 255, 0.30);
+    text-color: @active-foreground;
+}
+
+element selected.active {
+    background-color: @selected-active-background;
+    border: 2px;
+    border-color: rgba(255, 255, 255, 0.34);
+    text-color: @selected-active-foreground;
+}
+
+element normal.urgent,
+element selected.urgent {
+    background-color: rgba(255, 255, 255, 0.18);
+    border: 1px;
+    border-color: @selected-urgent-background;
+    text-color: @foreground;
+}
+
+element alternate.normal,
+element alternate.active,
+element alternate.urgent {
+    background-color: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.22);
+    text-color: @foreground;
+}
+
+scrollbar {
+    enabled: false;
+}
+
+message {
+    background-color: transparent;
+}
+
+textbox {
+    background-color: transparent;
+    text-color: @foreground;
+}
