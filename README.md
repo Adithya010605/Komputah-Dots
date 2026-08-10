@@ -10,6 +10,7 @@ Included:
 - `nvim`
 - `rofi`
 - `waybar`
+- `quickshell` (glass panel with media, Pomodoro, and audio controls)
 
 Excluded on purpose:
 
@@ -31,7 +32,7 @@ chmod +x install.sh
 The installer:
 
 - installs required pacman packages
-- installs required AUR packages (`hyprshade`, `python-pywal16-git`)
+- installs required AUR packages (`hyprshade`, `python-pywal16-git`, `quickshell`)
 - backs up existing target configs
 - copies the dotfiles into `~/.config`
 - creates or reuses a wallpaper in `~/walls`
