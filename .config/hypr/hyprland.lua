@@ -121,6 +121,13 @@ hl.config({
     misc = {
         force_default_wallpaper = 0,
         disable_hyprland_logo   = true,
+
+        -- If hyprlock ever dies while the session is locked -- which is what a
+        -- suspend/resume cycle can do to it -- the session stays locked with no
+        -- client to type into: a frozen screen that swallows every keystroke and
+        -- can only be escaped from a TTY. With this on, a fresh hyprlock is
+        -- allowed to attach to the existing lock instead.
+        allow_session_lock_restore = true,
     },
 
     cursor = {
@@ -214,9 +221,19 @@ hl.bind(mainMod .. " + G", hl.dsp.exec_cmd("~/.config/hypr/scripts/focus-mode.sh
 hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exec_cmd("~/.config/hypr/scripts/reading_mode.sh"))
 
 -- Session management
-hl.bind(mod .. " + L", hl.dsp.exec_cmd("hyprlock"))
+-- The shared lock path rather than a bare hyprlock: it refuses to stack a
+-- second lock client, which the old binding would happily do on a double press.
+hl.bind(mod .. " + L", hl.dsp.exec_cmd("~/.config/hypr/scripts/lock.sh"))
+
+-- The way out when the lock screen is up but dead. Works while locked, and
+-- with allow_session_lock_restore it hands the existing lock to a fresh
+-- hyprlock instead of leaving a TTY as the only option.
+hl.bind(mod .. " + SHIFT + L", hl.dsp.exec_cmd("~/.config/hypr/scripts/lock.sh"), { locked = true })
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("~/.config/hypr/scripts/night-light-toggle.sh"))
-hl.bind(mod .. " + S", hl.dsp.exec_cmd("sh -c \"hyprlock & sleep 0.5 && systemctl suspend\""))
+-- Lock, wait for it to actually be up, then go down. The old form raced:
+-- hyprlock was backgrounded and the machine suspended 0.5s later whether or not
+-- the lock surface had mapped yet.
+hl.bind(mod .. " + S", hl.dsp.exec_cmd("sh -c \"loginctl lock-session && sleep 1 && systemctl suspend\""))
 hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd("~/.config/hypr/scripts/no-sleep-toggle.sh"))
 hl.bind(mod .. " + SHIFT + Return", hl.dsp.exec_cmd("~/.config/rofi/scripts/power-menu.sh"))
 hl.bind(mod .. " + E", hl.dsp.exit())
@@ -319,9 +336,6 @@ hl.layer_rule({ match = { namespace = "quickshell-media" }, blur = true, ignore_
 -- Quickshell audio popup
 hl.layer_rule({ match = { namespace = "quickshell-audio" }, blur = true, ignore_alpha = 0 })
 
--- Quickshell bar
-hl.layer_rule({ match = { namespace = "quickshell-bar" }, blur = true, ignore_alpha = 0 })
-
 -- Quickshell settings popup
 hl.layer_rule({ match = { namespace = "quickshell-settings" }, blur = true, ignore_alpha = 0 })
 
@@ -330,6 +344,9 @@ hl.layer_rule({ match = { namespace = "quickshell-notifications" }, blur = true,
 
 -- Quickshell notification popups
 hl.layer_rule({ match = { namespace = "quickshell-toasts" }, blur = true, ignore_alpha = 0 })
+
+-- Quickshell bar
+hl.layer_rule({ match = { namespace = "quickshell-bar" }, blur = true, ignore_alpha = 0 })
 
 
 -------------------------
