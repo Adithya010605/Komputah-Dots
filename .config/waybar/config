@@ -84,7 +84,8 @@
     "format-icons": {
       "default": ["", "", ""]
     },
-    "on-click": "pavucontrol",
+    "on-click": "~/.config/waybar/scripts/audio-popup.sh",
+    "on-click-right": "pavucontrol",
     "tooltip": false
   },
 

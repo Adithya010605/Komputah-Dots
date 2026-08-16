@@ -314,6 +314,9 @@ hl.layer_rule({ match = { namespace = "quickshell-pomo" }, blur = true, ignore_a
 -- Quickshell media popup
 hl.layer_rule({ match = { namespace = "quickshell-media" }, blur = true, ignore_alpha = 0 })
 
+-- Quickshell audio popup
+hl.layer_rule({ match = { namespace = "quickshell-audio" }, blur = true, ignore_alpha = 0 })
+
 
 -------------------------
 ---- WINDOW RULES ----
