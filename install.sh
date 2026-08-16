@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# Fresh Arch box -> this desktop. Packages, configs, shell, services, theme.
+# Safe to re-run: existing configs are backed up first, and every step is
+# idempotent.
 
 set -euo pipefail
 
@@ -6,52 +10,86 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP_ROOT="${HOME}/.config-backups/komputah-dots-$(date +%Y%m%d-%H%M%S)"
 WALL_DIR="${HOME}/walls"
 DEFAULT_WALL="${WALL_DIR}/komputah-default.png"
+
 TARGET_CONFIGS=(hypr kitty mako nvim quickshell rofi waybar)
+HOME_FILES=(.zshrc .p10k.zsh)
+
+OH_MY_ZSH_DIR="${HOME}/.oh-my-zsh"
+ZSH_CUSTOM_DIR="${OH_MY_ZSH_DIR}/custom"
 
 PACMAN_PACKAGES=(
   base-devel
   git
+  # compositor and its own tools
   hyprland
   hyprpaper
   hyprlock
   hypridle
   hyprpicker
   hyprpolkitagent
+  xdg-desktop-portal-hyprland
+  # bars: quickshell is primary, waybar is the fallback Super+B switches to
+  quickshell
+  qt6-declarative
+  qt6-wayland
   waybar
   rofi-wayland
   kitty
   mako
   neovim
   nautilus
+  # network and bluetooth, driven from the settings panel
+  networkmanager
   network-manager-applet
   blueman
   bluez
   bluez-utils
+  # what the bar modules read
+  upower
   batsignal
   brightnessctl
   pavucontrol
   playerctl
+  # audio
+  pipewire
+  pipewire-pulse
+  wireplumber
+  # clipboard, capture, notifications
   wl-clipboard
   cliphist
   wf-recorder
+  hyprshot
+  grim
   slurp
   libnotify
-  pipewire
-  wireplumber
-  xdg-user-dirs
+  # wallpaper palette; `wal` is what the whole shell themes from
+  python
+  python-pywal
   imagemagick
+  xdg-user-dirs
+  # shell
+  zsh
+  # fonts: GeistMono is the bar and terminal face, Adwaita Sans the panels'
   otf-geist-mono-nerd
+  ttf-nerd-fonts-symbols
+  adwaita-fonts
+  noto-fonts
   noto-fonts-emoji
+  # the cursor theme hyprland.lua sets on startup
+  adwaita-cursors
+  adwaita-icon-theme
 )
 
 AUR_PACKAGES=(
   hyprshade
-  python-pywal16-git
-  quickshell
 )
 
 log() {
   printf '[*] %s\n' "$*"
+}
+
+warn() {
+  printf '[~] %s\n' "$*" >&2
 }
 
 fail() {
@@ -106,6 +144,13 @@ backup_existing_configs() {
     fi
   done
 
+  for name in "${HOME_FILES[@]}"; do
+    if [[ -e "${HOME}/${name}" ]]; then
+      mkdir -p "$BACKUP_ROOT"
+      mv "${HOME}/${name}" "$BACKUP_ROOT/${name}"
+    fi
+  done
+
   if [[ -d "$BACKUP_ROOT" ]]; then
     log "Backed up existing configs to $BACKUP_ROOT"
   fi
@@ -119,20 +164,72 @@ copy_configs() {
   for name in "${TARGET_CONFIGS[@]}"; do
     cp -a "${ROOT}/.config/${name}" "${HOME}/.config/"
   done
+
+  for name in "${HOME_FILES[@]}"; do
+    if [[ -f "${ROOT}/home/${name}" ]]; then
+      cp -a "${ROOT}/home/${name}" "${HOME}/${name}"
+    fi
+  done
 }
 
 make_scripts_executable() {
   log "Marking helper scripts executable"
-  find "${HOME}/.config/hypr/scripts" -type f -name '*.sh' -exec chmod +x {} +
-  find "${HOME}/.config/rofi/scripts" -type f -name '*.sh' -exec chmod +x {} +
-  find "${HOME}/.config/waybar/scripts" -type f -name '*.sh' -exec chmod +x {} +
-  find "${HOME}/.config/quickshell" -type f -name '*.sh' -exec chmod +x {} +
+
+  local name
+  for name in hypr rofi waybar quickshell; do
+    [[ -d "${HOME}/.config/${name}" ]] || continue
+    find "${HOME}/.config/${name}" -type f -name '*.sh' -exec chmod +x {} +
+  done
+}
+
+install_oh_my_zsh() {
+  if [[ -d "$OH_MY_ZSH_DIR" ]]; then
+    log "oh-my-zsh already present"
+  else
+    log "Installing oh-my-zsh"
+    git clone --depth 1 https://github.com/ohmyzsh/ohmyzsh.git "$OH_MY_ZSH_DIR"
+  fi
+
+  # The prompt and the two plugins ~/.zshrc names. Cloned into ZSH_CUSTOM
+  # rather than installed from the repos, because that is where oh-my-zsh
+  # looks for them and where the committed .zshrc expects them.
+  clone_zsh_extra https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM_DIR}/themes/powerlevel10k"
+  clone_zsh_extra https://github.com/zsh-users/zsh-autosuggestions.git "${ZSH_CUSTOM_DIR}/plugins/zsh-autosuggestions"
+  clone_zsh_extra https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM_DIR}/plugins/zsh-syntax-highlighting"
+}
+
+clone_zsh_extra() {
+  local url="$1" dest="$2"
+
+  if [[ -d "$dest" ]]; then
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$dest")"
+  git clone --depth 1 "$url" "$dest"
+}
+
+set_login_shell() {
+  local zsh_path
+  zsh_path="$(command -v zsh || true)"
+
+  if [[ -z "$zsh_path" ]]; then
+    warn "zsh is not installed; leaving the login shell alone"
+    return 0
+  fi
+
+  if [[ "${SHELL:-}" == "$zsh_path" ]]; then
+    return 0
+  fi
+
+  log "Setting zsh as the login shell"
+  chsh -s "$zsh_path" || warn "Could not change the login shell; run: chsh -s $zsh_path"
 }
 
 create_default_wallpaper() {
   log "Creating default wallpaper at $DEFAULT_WALL"
   mkdir -p "$WALL_DIR"
-  convert -size 1920x1080 gradient:'#0f172a-#1e293b' "$DEFAULT_WALL"
+  magick -size 1920x1080 gradient:'#0f172a-#1e293b' "$DEFAULT_WALL"
 }
 
 pick_wallpaper() {
@@ -159,14 +256,26 @@ patch_runtime_paths() {
   escaped_home="$(escape_sed "$HOME")"
   escaped_wallpaper="$(escape_sed "$wallpaper")"
 
-  sed -i "s|/home/adi|${escaped_home}|g" "${HOME}/.config/hypr/hyprpaper.conf"
-  sed -i "s|/home/adi|${escaped_home}|g" "${HOME}/.config/hypr/hyprlock.conf"
+  if [[ "$HOME" != "/home/adi" ]]; then
+    # Everything that names a path in full gets rewritten in one sweep rather
+    # than file by file. QML in particular has no ~ expansion, so the shell's
+    # palette source and pomodoro backend can only be absolute.
+    local name
+    for name in "${TARGET_CONFIGS[@]}"; do
+      [[ -d "${HOME}/.config/${name}" ]] || continue
+      # `|| true`: a config with nothing to rewrite is the normal case, and
+      # grep exiting 1 on no match would take the whole install down with it.
+      { grep -rlI '/home/adi' "${HOME}/.config/${name}" 2>/dev/null || true; } \
+        | xargs -r sed -i "s|/home/adi|${escaped_home}|g"
+    done
 
-  # The shell reads the wal palette and the pomodoro backend by absolute path:
-  # QML has no ~ expansion, so these cannot be written portably in the files.
-  find "${HOME}/.config/quickshell" -type f -name '*.qml' \
-    -exec sed -i "s|/home/adi|${escaped_home}|g" {} +
+    for name in "${HOME_FILES[@]}"; do
+      [[ -f "${HOME}/${name}" ]] || continue
+      sed -i "s|/home/adi|${escaped_home}|g" "${HOME}/${name}"
+    done
+  fi
 
+  # The wallpaper is the one path that is not just a home directory rename.
   sed -i "0,/^[[:space:]]*path[[:space:]]*=.*/s|^[[:space:]]*path[[:space:]]*=.*|    path = ${escaped_wallpaper}|" \
     "${HOME}/.config/hypr/hyprpaper.conf"
   sed -i "0,/^[[:space:]]*path[[:space:]]*=.*/s|^[[:space:]]*path[[:space:]]*=.*|    path = ${escaped_wallpaper}|" \
@@ -176,13 +285,20 @@ patch_runtime_paths() {
 prepare_user_dirs() {
   log "Preparing user directories"
   xdg-user-dirs-update
-  mkdir -p "${HOME}/Pictures/Screenshots" "${HOME}/Videos" "${HOME}/.local/state/pomodoro"
+  mkdir -p \
+    "${HOME}/Pictures/Screenshots" \
+    "${HOME}/Videos" \
+    "${HOME}/walls" \
+    "${HOME}/.cache/waybar" \
+    "${HOME}/.local/state/pomodoro"
 }
 
 generate_wal_theme() {
   local wallpaper="$1"
 
   log "Generating pywal theme cache"
+  # The bar, the panels and waybar all read ~/.cache/wal/colors.json, and the
+  # shell starts with a built-in palette until it exists.
   wal -i "$wallpaper" -n -q
 }
 
@@ -205,13 +321,21 @@ print_notes() {
 Install complete.
 
 Notes:
-- Your configs were installed into ${HOME}/.config
+- Configs installed into ${HOME}/.config, shell files into ${HOME}
+- Anything that was already there is in ${BACKUP_ROOT}
 - Wallpaper directory: ${WALL_DIR}
-- If your monitor names differ from eDP-1 / HDMI-A-1, adjust ~/.config/hypr/hyprland.lua
-- If brightness keys do not work, adjust the brightnessctl binds for your hardware
-  (they name a device explicitly: amdgpu_bl1)
-- The quickshell bar starts at login; Super+B swaps it for waybar, Super+Shift+B
-  reloads it
+- The quickshell bar starts at login and is the notification daemon.
+  Super+B swaps it for waybar, Super+Shift+B reloads it, and
+  ~/.config/quickshell/bar/bar-switch.sh status says what is running.
+- If your monitor names differ from eDP-1 / HDMI-A-1, adjust
+  ~/.config/hypr/hyprland.lua
+- The brightness bindings and the backlight module name a device explicitly
+  (amdgpu_bl1). Check "ls /sys/class/backlight" and adjust if yours differs.
+- The lock screen asks for SF Pro Display Bold, which is not in the Arch
+  repos; without it hyprlock falls back to a system face.
+- Super+C is bound to "code", which is not installed by this script. Install
+  the "code" package (or repoint the binding) if you want it.
+- Log out and back in for zsh to become your shell.
 
 Start Hyprland and the theme cache should already be ready.
 EOF
@@ -230,6 +354,8 @@ main() {
   backup_existing_configs
   copy_configs
   make_scripts_executable
+  install_oh_my_zsh
+  set_login_shell
 
   local wallpaper
   wallpaper="$(pick_wallpaper)"
