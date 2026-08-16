@@ -3,14 +3,42 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import "root:/"
 import "root:/components"
 import "root:/modules"
+import "root:/panels"
 
 // The bar, and everything that hangs off it.
+//
+// Bar and panels live in one process so a panel can be told exactly where its
+// module sits — the old screenshot calibration that guessed at waybar module
+// positions is gone entirely.
 ShellRoot {
     id: root
+
+    // Panels by keybind as well as by click. They still hang off their own
+    // module, because every module keeps its position on file.
+    //
+    //   quickshell -c bar ipc call panel toggle media
+    IpcHandler {
+        target: "panel"
+
+        function toggle(name: string): void {
+            PanelState.toggleByName(name);
+        }
+
+        // Named open/close rather than show/hide: `show` is also an `ipc`
+        // subcommand and the CLI swallows it before the call.
+        function open(name: string): void {
+            PanelState.openByName(name);
+        }
+
+        function close(): void {
+            PanelState.close();
+        }
+    }
 
     PanelWindow {
         id: bar
@@ -105,8 +133,16 @@ ShellRoot {
 
                 Separator {}
 
+                MprisModule {}
+
+                Separator {}
+
                 ClockModule {}
             }
         }
     }
+
+    // ─── what hangs from it ──────────────────────────────────────────
+
+    MediaPanel {}
 }
