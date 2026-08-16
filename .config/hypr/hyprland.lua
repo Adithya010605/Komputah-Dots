@@ -37,7 +37,9 @@ local menu        = "rofi -show drun"
 -------------------
 
 hl.on("hyprland.start", function()
-    hl.exec_cmd("quickshell -c bar --daemonize & hyprpaper & nm-applet --indicator & blueman-applet & mako")
+    -- No mako: the quickshell bar is the notification daemon now, and only one
+    -- process can hold org.freedesktop.Notifications at a time.
+    hl.exec_cmd("quickshell -c bar --daemonize & hyprpaper & nm-applet --indicator & blueman-applet")
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("wl-paste --watch cliphist store")
@@ -319,6 +321,12 @@ hl.layer_rule({ match = { namespace = "quickshell-audio" }, blur = true, ignore_
 
 -- Quickshell bar
 hl.layer_rule({ match = { namespace = "quickshell-bar" }, blur = true, ignore_alpha = 0 })
+
+-- Quickshell notification log
+hl.layer_rule({ match = { namespace = "quickshell-notifications" }, blur = true, ignore_alpha = 0 })
+
+-- Quickshell notification popups
+hl.layer_rule({ match = { namespace = "quickshell-toasts" }, blur = true, ignore_alpha = 0 })
 
 
 -------------------------

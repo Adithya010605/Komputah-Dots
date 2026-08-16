@@ -155,6 +155,8 @@ ShellRoot {
                 MemoryModule {}
 
                 BatteryModule {}
+
+                NotificationModule {}
             }
         }
     }
@@ -166,4 +168,10 @@ ShellRoot {
     MediaPanel {}
 
     PomoPanel {}
+
+    NotificationPanel {}
+
+    // Not a panel you open: the same drip, hanging off the bell on its own
+    // whenever something comes in.
+    NotificationToasts {}
 }
