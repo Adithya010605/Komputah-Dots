@@ -147,6 +147,8 @@ ShellRoot {
                 ClockModule {}
 
                 VolumeModule {}
+
+                BacklightModule {}
             }
         }
     }
