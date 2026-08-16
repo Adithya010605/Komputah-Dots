@@ -113,8 +113,8 @@
     "format-off": "󰂲",
     "format-connected": "󰂱 {num_connections}",
     "format-connected-battery": "󰂱 {device_alias} {device_battery_percentage}%",
-    "on-click": "sh -lc '~/.config/waybar/scripts/bluetooth_toggle.sh'",
-    "on-click-right": "sh -lc '~/.config/waybar/scripts/bluetooth_manager.sh'",
+    "on-click": "sh -lc '/home/adi/.config/waybar/scripts/bluetooth_toggle.sh'",
+    "on-click-right": "sh -lc '/home/adi/.config/waybar/scripts/bluetooth_manager.sh'",
     "tooltip": false
   },
 
