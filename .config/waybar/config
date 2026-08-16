@@ -64,11 +64,12 @@
     "return-type": "json",
     "max-length": 25,
     "min-length": 25,
-    "on-click": "sh -c '~/.config/waybar/scripts/mpris.sh toggle; pkill -RTMIN+8 waybar'",
+    "on-click": "~/.config/waybar/scripts/media-popup.sh",
+    "on-click-right": "sh -c '~/.config/waybar/scripts/mpris.sh toggle; pkill -RTMIN+8 waybar'",
     "on-scroll-up": "sh -c '~/.config/waybar/scripts/mpris.sh prev; pkill -RTMIN+8 waybar'",
     "on-scroll-down": "sh -c '~/.config/waybar/scripts/mpris.sh next; pkill -RTMIN+8 waybar'",
     "smooth-scrolling-threshold": 0.2,
-    "tooltip": true
+    "tooltip": false
   },
 
   "clock": {

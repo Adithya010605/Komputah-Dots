@@ -311,6 +311,9 @@ hl.layer_rule({ match = { namespace = "waybar" }, blur = true, ignore_alpha = 0 
 -- Quickshell pomodoro popup
 hl.layer_rule({ match = { namespace = "quickshell-pomo" }, blur = true, ignore_alpha = 0 })
 
+-- Quickshell media popup
+hl.layer_rule({ match = { namespace = "quickshell-media" }, blur = true, ignore_alpha = 0 })
+
 
 -------------------------
 ---- WINDOW RULES ----
