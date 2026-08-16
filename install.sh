@@ -28,7 +28,7 @@ PACMAN_PACKAGES=(
   hyprpicker
   hyprpolkitagent
   xdg-desktop-portal-hyprland
-  # bars: quickshell is primary, waybar is the fallback Super+B switches to
+  # bars: quickshell is primary, waybar is the fallback Alt+B switches to
   quickshell
   qt6-declarative
   qt6-wayland
@@ -325,7 +325,7 @@ Notes:
 - Anything that was already there is in ${BACKUP_ROOT}
 - Wallpaper directory: ${WALL_DIR}
 - The quickshell bar starts at login and is the notification daemon.
-  Super+B swaps it for waybar, Super+Shift+B reloads it, and
+  Alt+B swaps it for waybar, Alt+Shift+B reloads it, and
   ~/.config/quickshell/bar/bar-switch.sh status says what is running.
 - If your monitor names differ from eDP-1 / HDMI-A-1, adjust
   ~/.config/hypr/hyprland.lua
@@ -333,7 +333,7 @@ Notes:
   (amdgpu_bl1). Check "ls /sys/class/backlight" and adjust if yours differs.
 - The lock screen asks for SF Pro Display Bold, which is not in the Arch
   repos; without it hyprlock falls back to a system face.
-- Super+C is bound to "code", which is not installed by this script. Install
+- Alt+C is bound to "code", which is not installed by this script. Install
   the "code" package (or repoint the binding) if you want it.
 - Log out and back in for zsh to become your shell.
 
