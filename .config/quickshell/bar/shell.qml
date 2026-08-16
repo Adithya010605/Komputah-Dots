@@ -146,6 +146,8 @@ ShellRoot {
 
                 ClockModule {}
 
+                PomoModule {}
+
                 VolumeModule {}
 
                 BacklightModule {}
@@ -162,4 +164,6 @@ ShellRoot {
     AudioPanel {}
 
     MediaPanel {}
+
+    PomoPanel {}
 }
