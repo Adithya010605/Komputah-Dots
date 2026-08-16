@@ -322,6 +322,9 @@ hl.layer_rule({ match = { namespace = "quickshell-audio" }, blur = true, ignore_
 -- Quickshell bar
 hl.layer_rule({ match = { namespace = "quickshell-bar" }, blur = true, ignore_alpha = 0 })
 
+-- Quickshell settings popup
+hl.layer_rule({ match = { namespace = "quickshell-settings" }, blur = true, ignore_alpha = 0 })
+
 -- Quickshell notification log
 hl.layer_rule({ match = { namespace = "quickshell-notifications" }, blur = true, ignore_alpha = 0 })
 

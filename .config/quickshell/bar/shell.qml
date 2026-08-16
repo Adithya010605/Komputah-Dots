@@ -28,7 +28,7 @@ ShellRoot {
     // Panels by keybind as well as by click. They still hang off their own
     // module, because every module keeps its position on file.
     //
-    //   quickshell -c bar ipc call panel toggle media
+    //   quickshell -c bar ipc call panel toggle audio
     IpcHandler {
         target: "panel"
 
@@ -157,6 +157,10 @@ ShellRoot {
                 BatteryModule {}
 
                 NotificationModule {}
+
+                // The tray pill is gone: it held nm-applet and blueman-applet,
+                // and both of those now live inside the settings panel.
+                SettingsModule {}
             }
         }
     }
@@ -168,6 +172,8 @@ ShellRoot {
     MediaPanel {}
 
     PomoPanel {}
+
+    SettingsPanel {}
 
     NotificationPanel {}
 
