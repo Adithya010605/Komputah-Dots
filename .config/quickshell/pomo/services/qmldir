@@ -1,0 +1,2 @@
+module Pomo.Services
+singleton PomoService 1.0 PomoService.qml

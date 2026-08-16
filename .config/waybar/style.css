@@ -132,6 +132,15 @@ window#waybar {
   border-color: rgba(255, 255, 255, 0.3);
 }
 
+/* The running countdown stays plain white — no accent tint while ticking */
+#custom-pomo.running {
+  color: white;
+}
+
+#custom-pomo.paused {
+  color: rgba(255, 255, 255, 0.55);
+}
+
 #backlight {
   color: white;
   text-shadow: 0 0 3px rgba(255, 255, 255, 0.18);

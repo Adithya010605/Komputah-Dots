@@ -136,13 +136,14 @@
 
   "custom/pomo": {
     "exec": "~/.config/waybar/scripts/pomo.sh",
-    "on-click": "~/.config/waybar/scripts/pomo.sh toggle",
+    "interval": 1,
+    "return-type": "json",
+    "format": "{}",
+    "on-click": "~/.config/waybar/scripts/pomo-popup.sh",
     "on-click-right": "~/.config/waybar/scripts/pomo.sh stop",
     "on-scroll-up": "~/.config/waybar/scripts/pomo.sh preset-next",
     "on-scroll-down": "~/.config/waybar/scripts/pomo.sh preset-prev",
-    "interval": 1,
-    "return-type": "json",
-    "format": "󰔟 {}",
+    "smooth-scrolling-threshold": 0.2,
     "tooltip": false
   },
 

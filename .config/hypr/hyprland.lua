@@ -308,6 +308,9 @@ hl.layer_rule({ match = { namespace = "rofi" }, blur = true, ignore_alpha = 0 })
 -- Waybar
 hl.layer_rule({ match = { namespace = "waybar" }, blur = true, ignore_alpha = 0 })
 
+-- Quickshell pomodoro popup
+hl.layer_rule({ match = { namespace = "quickshell-pomo" }, blur = true, ignore_alpha = 0 })
+
 
 -------------------------
 ---- WINDOW RULES ----
