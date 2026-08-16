@@ -37,7 +37,7 @@ local menu        = "rofi -show drun"
 -------------------
 
 hl.on("hyprland.start", function()
-    hl.exec_cmd("waybar & hyprpaper & nm-applet --indicator & blueman-applet & mako")
+    hl.exec_cmd("quickshell -c bar --daemonize & hyprpaper & nm-applet --indicator & blueman-applet & mako")
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("wl-paste --watch cliphist store")
@@ -203,9 +203,9 @@ hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("~/.config/rofi/scripts/wallpaper-picker.sh"))
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("~/.config/rofi/scripts/clipboard.sh"))
 
--- Waybar controls
-hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("killall -SIGUSR1 waybar || waybar"))
-hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd("pkill waybar && waybar"))
+-- Bar controls (quickshell bar is primary; waybar is the fallback)
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("~/.config/quickshell/bar/bar-switch.sh toggle"))
+hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd("~/.config/quickshell/bar/bar-switch.sh restart"))
 
 -- Scripts
 hl.bind(mainMod .. " + G", hl.dsp.exec_cmd("~/.config/hypr/scripts/focus-mode.sh"))
@@ -316,6 +316,9 @@ hl.layer_rule({ match = { namespace = "quickshell-media" }, blur = true, ignore_
 
 -- Quickshell audio popup
 hl.layer_rule({ match = { namespace = "quickshell-audio" }, blur = true, ignore_alpha = 0 })
+
+-- Quickshell bar
+hl.layer_rule({ match = { namespace = "quickshell-bar" }, blur = true, ignore_alpha = 0 })
 
 
 -------------------------
