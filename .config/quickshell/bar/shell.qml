@@ -149,6 +149,10 @@ ShellRoot {
                 VolumeModule {}
 
                 BacklightModule {}
+
+                MemoryModule {}
+
+                BatteryModule {}
             }
         }
     }
