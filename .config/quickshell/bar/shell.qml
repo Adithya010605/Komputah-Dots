@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import Quickshell.Services.Pipewire
 import "root:/"
 import "root:/components"
 import "root:/modules"
@@ -17,6 +18,12 @@ import "root:/panels"
 // positions is gone entirely.
 ShellRoot {
     id: root
+
+    // Volume and mute do not populate on these nodes unless something is
+    // holding them, and the bar reads both.
+    PwObjectTracker {
+        objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource]
+    }
 
     // Panels by keybind as well as by click. They still hang off their own
     // module, because every module keeps its position on file.
@@ -138,11 +145,15 @@ ShellRoot {
                 Separator {}
 
                 ClockModule {}
+
+                VolumeModule {}
             }
         }
     }
 
     // ─── what hangs from it ──────────────────────────────────────────
+
+    AudioPanel {}
 
     MediaPanel {}
 }
