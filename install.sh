@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP_ROOT="${HOME}/.config-backups/komputah-dots-$(date +%Y%m%d-%H%M%S)"
 WALL_DIR="${HOME}/walls"
 DEFAULT_WALL="${WALL_DIR}/komputah-default.png"
-TARGET_CONFIGS=(hypr kitty mako nvim rofi waybar)
+TARGET_CONFIGS=(hypr kitty mako nvim quickshell rofi waybar)
 
 PACMAN_PACKAGES=(
   base-devel
@@ -47,6 +47,7 @@ PACMAN_PACKAGES=(
 AUR_PACKAGES=(
   hyprshade
   python-pywal16-git
+  quickshell
 )
 
 log() {
@@ -125,6 +126,7 @@ make_scripts_executable() {
   find "${HOME}/.config/hypr/scripts" -type f -name '*.sh' -exec chmod +x {} +
   find "${HOME}/.config/rofi/scripts" -type f -name '*.sh' -exec chmod +x {} +
   find "${HOME}/.config/waybar/scripts" -type f -name '*.sh' -exec chmod +x {} +
+  find "${HOME}/.config/quickshell" -type f -name '*.sh' -exec chmod +x {} +
 }
 
 create_default_wallpaper() {
@@ -159,6 +161,11 @@ patch_runtime_paths() {
 
   sed -i "s|/home/adi|${escaped_home}|g" "${HOME}/.config/hypr/hyprpaper.conf"
   sed -i "s|/home/adi|${escaped_home}|g" "${HOME}/.config/hypr/hyprlock.conf"
+
+  # The shell reads the wal palette and the pomodoro backend by absolute path:
+  # QML has no ~ expansion, so these cannot be written portably in the files.
+  find "${HOME}/.config/quickshell" -type f -name '*.qml' \
+    -exec sed -i "s|/home/adi|${escaped_home}|g" {} +
 
   sed -i "0,/^[[:space:]]*path[[:space:]]*=.*/s|^[[:space:]]*path[[:space:]]*=.*|    path = ${escaped_wallpaper}|" \
     "${HOME}/.config/hypr/hyprpaper.conf"
@@ -202,6 +209,9 @@ Notes:
 - Wallpaper directory: ${WALL_DIR}
 - If your monitor names differ from eDP-1 / HDMI-A-1, adjust ~/.config/hypr/hyprland.lua
 - If brightness keys do not work, adjust the brightnessctl binds for your hardware
+  (they name a device explicitly: amdgpu_bl1)
+- The quickshell bar starts at login; Super+B swaps it for waybar, Super+Shift+B
+  reloads it
 
 Start Hyprland and the theme cache should already be ready.
 EOF

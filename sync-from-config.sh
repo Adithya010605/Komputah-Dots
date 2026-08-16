@@ -14,7 +14,8 @@ mkdir -p \
   "$ROOT/.config/rofi/icons" \
   "$ROOT/.config/rofi/scripts" \
   "$ROOT/.config/rofi/themes" \
-  "$ROOT/.config/waybar/scripts"
+  "$ROOT/.config/waybar/scripts" \
+  "$ROOT/.config/quickshell"
 
 rm -rf \
   "$ROOT/.config/hypr" \
@@ -22,7 +23,8 @@ rm -rf \
   "$ROOT/.config/mako" \
   "$ROOT/.config/nvim" \
   "$ROOT/.config/rofi" \
-  "$ROOT/.config/waybar"
+  "$ROOT/.config/waybar" \
+  "$ROOT/.config/quickshell"
 
 mkdir -p \
   "$ROOT/.config/hypr" \
@@ -33,7 +35,8 @@ mkdir -p \
   "$ROOT/.config/rofi/icons" \
   "$ROOT/.config/rofi/scripts" \
   "$ROOT/.config/rofi/themes" \
-  "$ROOT/.config/waybar/scripts"
+  "$ROOT/.config/waybar/scripts" \
+  "$ROOT/.config/quickshell"
 
 cp "$SOURCE_HOME/.config/hypr/hypridle.conf" "$ROOT/.config/hypr/"
 cp "$SOURCE_HOME/.config/hypr/hyprland.lua" "$ROOT/.config/hypr/"
@@ -63,12 +66,21 @@ cp "$SOURCE_HOME/.config/rofi/themes/wallpaper-grid.rasi" "$ROOT/.config/rofi/th
 
 cp "$SOURCE_HOME/.config/waybar/config" "$ROOT/.config/waybar/"
 cp "$SOURCE_HOME/.config/waybar/style.css" "$ROOT/.config/waybar/"
+cp "$SOURCE_HOME/.config/waybar/scripts/audio-popup.sh" "$ROOT/.config/waybar/scripts/"
 cp "$SOURCE_HOME/.config/waybar/scripts/bluetooth_manager.sh" "$ROOT/.config/waybar/scripts/"
 cp "$SOURCE_HOME/.config/waybar/scripts/bluetooth_toggle.sh" "$ROOT/.config/waybar/scripts/"
 cp "$SOURCE_HOME/.config/waybar/scripts/memory_pie.sh" "$ROOT/.config/waybar/scripts/"
 cp "$SOURCE_HOME/.config/waybar/scripts/mic_status.sh" "$ROOT/.config/waybar/scripts/"
+cp "$SOURCE_HOME/.config/waybar/scripts/media-anchor-calibrate.sh" "$ROOT/.config/waybar/scripts/"
+cp "$SOURCE_HOME/.config/waybar/scripts/media-popup.sh" "$ROOT/.config/waybar/scripts/"
 cp "$SOURCE_HOME/.config/waybar/scripts/mpris.sh" "$ROOT/.config/waybar/scripts/"
 cp "$SOURCE_HOME/.config/waybar/scripts/pomo.sh" "$ROOT/.config/waybar/scripts/"
+cp "$SOURCE_HOME/.config/waybar/scripts/pomo-popup.sh" "$ROOT/.config/waybar/scripts/"
+cp "$SOURCE_HOME/.config/waybar/scripts/waybar-anchor-calibrate.sh" "$ROOT/.config/waybar/scripts/"
+
+# The shell is a self-contained tree of QML, so it comes over whole rather
+# than file by file like the rest.
+cp -r "$SOURCE_HOME/.config/quickshell/." "$ROOT/.config/quickshell/"
 
 find "$ROOT" -type d -name __pycache__ -prune -exec rm -rf {} +
 
