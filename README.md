@@ -14,7 +14,7 @@ Komputah-Dots/
 │   ├── hypr/        Hyprland (Lua config), hyprlock, hypridle, hyprpaper, shaders, scripts
 │   ├── quickshell/  the bar, its panels, and the notification daemon
 │   ├── waybar/      the fallback bar and its module scripts
-│   ├── rofi/        launcher, clipboard, power menu, wallpaper picker
+│   ├── rofi/        launcher, clipboard, power menu
 │   ├── kitty/       terminal
 │   ├── mako/        notification daemon config (kept for the waybar fallback)
 │   └── nvim/        LazyVim
@@ -32,7 +32,7 @@ fallback that `Alt+B` switches to.
 width as modules come and go: window title, workspaces, media, clock, pomodoro,
 volume, backlight, memory, battery, notifications, settings.
 
-**The panels** — media, audio, pomodoro, notifications, settings — all use the
+**The panels** — media, audio, pomodoro, system, notifications, settings — all use the
 same drip: they grow downward out of the bar's underside, overshoot and settle,
 with a neck that pinches at the join, and retract back up on close. Because bar
 and panels live in one process, a panel is told exactly where its module sits;
@@ -43,14 +43,31 @@ there is no screenshot calibration and no guessing.
 | Media | the track pill | art, transport, seek, player picker |
 | Audio | the volume icon | output/input volume, device pickers, per-app streams |
 | Pomodoro | the countdown | preset picker, controls, week heat strip, today's total |
+| System | the memory pie | CPU, GPU and memory — plots, per-core load, temperature and power |
 | Notifications | the bell | full history, dismiss and clear-all |
 | Settings | the gear | Wi-Fi and bluetooth in full — scan, connect, forget, pair |
+
+The system panel samples `/proc` and hwmon continuously, so its plots are
+already a minute deep when it opens; `nvidia-smi` only runs while the panel is
+up, because waking the discrete GPU once a second for a closed panel is a
+battery leak.
 
 Panels can be driven by keybind or script as well as by click:
 
 ```bash
-quickshell -c bar ipc call panel toggle audio    # media | audio | pomo | notifications | settings
+quickshell -c bar ipc call panel toggle audio    # media | audio | pomo | system | notifications | settings
 quickshell -c bar ipc call panel close
+```
+
+**The wallpaper wheel** is the one surface that does not drip. `Alt+W` summons
+it over the whole screen: the images in `~/walls` mounted on a disk whose centre
+sits off the right edge, turning endlessly past either end. Enter applies one —
+`quickshell/bar/set-wallpaper.sh` does the work and is runnable on its own —
+which sets hyprpaper, regenerates the palette, and writes the choice into
+`hyprpaper.conf` and `hyprlock.conf` so it survives a reboot.
+
+```bash
+quickshell -c bar ipc call wallpaper toggle
 ```
 
 **Theming** is wallpaper-driven. `wal` writes `~/.cache/wal/colors.json`,
@@ -105,7 +122,7 @@ workspaces.
 | `Alt+C` | code (not installed by this script) |
 | `Alt+R` | rofi drun |
 | `Alt+V` | clipboard history |
-| `Alt+W` | wallpaper picker (re-themes the whole shell) |
+| `Alt+W` | wallpaper wheel (re-themes the whole shell) |
 
 **Screen and session**
 
