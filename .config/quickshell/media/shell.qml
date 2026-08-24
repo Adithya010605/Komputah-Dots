@@ -817,7 +817,12 @@ ShellRoot {
     component Glyph: Text {
         font.family: root.iconFamily
         color: root.text
-        renderType: Text.NativeRendering
+
+        // Not NativeRendering, unlike the text components above: the
+        // native rasteriser hints icon outlines onto the pixel grid and
+        // at these sizes the thin gaps inside a glyph snap shut, which
+        // turns headphones and wifi fans into smears of bars.
+        renderType: Text.QtRendering
     }
 
     // Album art, falling back to the player's own glyph when a track carries
