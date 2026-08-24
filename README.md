@@ -12,7 +12,7 @@ fallback.
 Komputah-Dots/
 ├── .config/
 │   ├── hypr/        Hyprland (Lua config), hyprlock, hypridle, hyprpaper, shaders, scripts
-│   ├── quickshell/  the bar, its panels, and the notification daemon
+│   ├── quickshell/  the bar, its panels, the launcher, and the notification daemon
 │   ├── waybar/      the fallback bar and its module scripts
 │   ├── rofi/        launcher, clipboard, power menu
 │   ├── kitty/       terminal
@@ -58,6 +58,36 @@ Panels can be driven by keybind or script as well as by click:
 quickshell -c bar ipc call panel toggle audio    # media | audio | pomo | system | notifications | settings
 quickshell -c bar ipc call panel close
 ```
+
+**The launcher** is on `Super+R`, and is also not a panel: a glass card in the
+upper third of the screen with one box in it. What you type is offered to
+everything that might answer it, and the answers share one list — there are no
+modes and no prefixes.
+
+| You type | You get |
+| --- | --- |
+| `zen`, `blend`, `libre` | applications, ranked by match and by how often you launch them |
+| `2+2`, `(3+2)*4`, `sqrt(16)`, `2^10` | the total — brackets, functions, hex and binary, `1,234` and `2.5k` |
+| `20% of 250`, `250 + 10%` | percentages read the way Raycast reads them |
+| `100 usd in inr`, `$100 in inr`, `usd in inr` | the ECB's daily rate, with the pair rate and how old it is |
+| `6ft in cm`, `180 c in f`, `12 gb in mib` | length, mass, time, data, volume and temperature |
+
+Enter opens an application or copies an answer; `Up`/`Down` (or `Ctrl+N`/`Ctrl+P`)
+move, `Esc` closes. The ranking is learnt — it is kept in
+`~/.local/state/quickshell/launcher.json` and decays, so what you used this
+month outranks what you used constantly last year.
+
+Rates come from `api.frankfurter.dev`, which needs no key. They are cached in
+`~/.cache/quickshell/rates.json` and refreshed at most once a day, only when the
+launcher is opened — a machine that never converts anything never makes a
+request, and a stale cache still answers and says how old it is.
+
+```bash
+quickshell -c bar ipc call launcher toggle
+```
+
+`Alt+R` stays on rofi as the fallback, the same way `Alt+B` keeps waybar behind
+the quickshell bar.
 
 **The wallpaper wheel** is the one surface that does not drip. `Alt+W` summons
 it over the whole screen: the images in `~/walls` mounted on a disk whose centre
@@ -117,7 +147,8 @@ workspaces.
 | `Alt+Return` | kitty |
 | `Alt+E` | nautilus |
 | `Alt+C` | code (not installed by this script) |
-| `Alt+R` | rofi drun |
+| `Super+R` | launcher — apps, sums, conversions |
+| `Alt+R` | rofi drun (fallback) |
 | `Alt+V` | clipboard history |
 | `Alt+W` | wallpaper wheel (re-themes the whole shell) |
 

@@ -67,6 +67,26 @@ ShellRoot {
         }
     }
 
+    // Same reasoning as the wallpaper target above: the launcher is not one of
+    // the bar's panels, so it is addressed on its own.
+    //
+    //   quickshell -c bar ipc call launcher toggle
+    IpcHandler {
+        target: "launcher"
+
+        function toggle(): void {
+            appLauncher.toggle();
+        }
+
+        function open(): void {
+            appLauncher.show();
+        }
+
+        function close(): void {
+            appLauncher.hide();
+        }
+    }
+
     PanelWindow {
         id: bar
 
@@ -210,5 +230,13 @@ ShellRoot {
     // already loaded when the key is pressed.
     WallpaperMenu {
         id: wallpaperMenu
+    }
+
+    // The same: no module, no anchor, summoned by Super+R. In this process so
+    // the application index and the usage ranking are already built and warm
+    // when the key is pressed — a launcher that has to start before it can
+    // search is a launcher you wait for.
+    LauncherMenu {
+        id: appLauncher
     }
 }

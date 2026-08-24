@@ -290,7 +290,9 @@ prepare_user_dirs() {
     "${HOME}/Videos" \
     "${HOME}/walls" \
     "${HOME}/.cache/waybar" \
-    "${HOME}/.local/state/pomodoro"
+    "${HOME}/.cache/quickshell" \
+    "${HOME}/.local/state/pomodoro" \
+    "${HOME}/.local/state/quickshell"
 }
 
 generate_wal_theme() {

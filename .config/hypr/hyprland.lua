@@ -208,6 +208,10 @@ hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd("hyprshot -o ~/Pictures/Scree
 hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("hyprpicker -a"))
 
 -- Launchers
+-- Super+R is the quickshell launcher: applications, sums and conversions in one
+-- box, in the process that is already running. Alt+R stays on rofi as the
+-- fallback, the same way Alt+B keeps waybar behind the quickshell bar.
+hl.bind(mod .. " + R", hl.dsp.exec_cmd("quickshell -c bar ipc call launcher toggle"))
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
 -- Wallpaper deck, in the quickshell process that is already running. The rofi
 -- picker it replaces is still at ~/.config/rofi/scripts/wallpaper-picker.sh.
@@ -348,6 +352,10 @@ hl.layer_rule({ match = { namespace = "quickshell-settings" }, blur = true, igno
 -- was the surface stopping at the bar's exclusive zone, not the blur itself;
 -- the picker now ignores that zone, so this covers the whole screen.
 hl.layer_rule({ match = { namespace = "quickshell-wallpaper" }, blur = true, ignore_alpha = 0 })
+
+-- Quickshell launcher. Covers the whole display and ignores the bar's
+-- exclusive zone, same as the picker above.
+hl.layer_rule({ match = { namespace = "quickshell-launcher" }, blur = true, ignore_alpha = 0 })
 
 -- Quickshell notification log
 hl.layer_rule({ match = { namespace = "quickshell-notifications" }, blur = true, ignore_alpha = 0 })

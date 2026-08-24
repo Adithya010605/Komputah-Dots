@@ -202,6 +202,48 @@ Singleton {
     // as a jump, short enough to hold an arrow key down through.
     readonly property int wheelTurnDuration: 420
 
+    // ─── the launcher ────────────────────────────────────────────────
+    //
+    // Summoned like the wallpaper picker and sharing its scrim and fades, but
+    // it is a card rather than a stage: one object, centred, that you type
+    // into. The numbers here are about the card.
+
+    // Wide enough for an application name and what it is side by side, and no
+    // wider — a search box that runs the width of the display makes you look
+    // across the screen to read a result you are already looking at.
+    readonly property int launcherWidth: 620
+
+    // Down from the top, not centred vertically. The box lands under where the
+    // eye already is and the results grow downward into empty screen, so
+    // nothing moves upward as you type.
+    readonly property real launcherTopFraction: 0.22
+
+    readonly property int launcherRadius: 22
+    readonly property int launcherFieldHeight: 62
+    readonly property int launcherRowHeight: 50
+
+    // The answer row is the one thing in the card that is read rather than
+    // scanned, so it gets the height to be set at a size you can read at a
+    // glance.
+    readonly property int launcherAnswerHeight: 78
+
+    // A hair faster than the wallpaper picker's arrival. That one is a place
+    // you go and look around; this one is in the way of what you were doing.
+    readonly property int launcherFadeIn: 160
+    readonly property int launcherFadeOut: 110
+    readonly property int launcherRise: 260
+    readonly property int launcherUnrenderDelay: 200
+
+    // How far the card starts below where it settles, and how far down it is
+    // scaled. Both small: this is a card arriving, not a card flying in.
+    readonly property int launcherRiseDistance: 14
+    readonly property real launcherRestScale: 0.985
+
+    // The selected row. Filled rather than outlined, because the selection
+    // moves on every keystroke and an outline redrawing that often flickers.
+    readonly property color launcherSelection: withAlpha(accentBase, 0.20)
+    readonly property color launcherSelectionEdge: withAlpha(accentBase, 0.34)
+
     // ─── notifications ───────────────────────────────────────────────
 
     // Toasts hang under the bell the same way every panel hangs under its
