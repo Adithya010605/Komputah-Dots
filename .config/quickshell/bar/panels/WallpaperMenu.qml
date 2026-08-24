@@ -29,13 +29,48 @@ Scope {
     property bool open: false
     property bool rendered: false
 
-    // Which wallpaper has come round to the selection point. Not the applied
-    // one — that is Wallpapers.current, and the two are only equal until you
-    // start turning the wheel.
+    // How far the wheel has been turned, counted in notches from wherever it
+    // started. Deliberately unbounded: the wheel has no ends, so this runs on
+    // past the last wallpaper and back before the first, and everything that
+    // needs a file out of it takes it modulo the folder.
     property int index: 0
 
     readonly property int count: Wallpapers.files.length
-    readonly property string focused: menu.index >= 0 && menu.index < menu.count ? Wallpapers.files[menu.index] : ""
+
+    // The folder wrapped onto the rim. With few enough wallpapers the arc
+    // would not fill — you would turn into a gap and out the other side — so
+    // the list is repeated round the disk until there is always a card at
+    // every position the eye can reach. Seeing the same wallpaper twice on a
+    // small folder is the honest consequence of a wheel that never ends.
+    readonly property int copies: menu.count > 0 ? Math.max(1, Math.ceil((menu.reach * 2 + 2) / menu.count)) : 0
+    readonly property int slots: menu.count * menu.copies
+
+    // A full turn, in degrees. Half of it is the furthest any card ever gets
+    // from the selection point before it is cheaper to say it is coming round
+    // the other side instead.
+    readonly property real span: menu.slots * menu.step
+
+    // Which slot has come round to the selection point, and which wallpaper
+    // that is. Not the applied one — that is Wallpapers.current, and the two
+    // are only equal until you start turning the wheel.
+    readonly property int slot: menu.slots > 0 ? ((menu.index % menu.slots) + menu.slots) % menu.slots : 0
+    readonly property int file: menu.count > 0 ? menu.slot % menu.count : -1
+    readonly property string focused: menu.file >= 0 ? Wallpapers.files[menu.file] : ""
+
+    // The shortest way round. Everything that jumps the wheel somewhere
+    // absolute — opening on the live wallpaper, clicking a card on the rim —
+    // goes through one of these, so it turns the near way rather than
+    // unwinding the whole folder to arrive at the same place.
+    function shortest(delta, whole) {
+        if (whole <= 0)
+            return 0;
+
+        return delta - whole * Math.round(delta / whole);
+    }
+
+    function wrapAngle(degrees) {
+        return menu.span > 0 ? menu.shortest(degrees, menu.span) : degrees;
+    }
 
     // ─── the wheel ───────────────────────────────────────────────────
 
@@ -88,9 +123,18 @@ Scope {
 
     // Always opens on what is actually on the desktop, however far the last
     // visit turned the wheel from it.
+    function goTo(fileIndex) {
+        if (menu.count === 0 || fileIndex < 0)
+            return;
+
+        // The same wallpaper sits at several slots on a repeated wheel; this
+        // turns to whichever copy of it is nearest.
+        menu.index += menu.shortest(fileIndex - menu.file, menu.count);
+    }
+
     function syncToLive() {
         const live = Wallpapers.files.indexOf(Wallpapers.current);
-        menu.index = live >= 0 ? live : 0;
+        menu.goTo(live >= 0 ? live : 0);
     }
 
     function show() {
@@ -147,7 +191,9 @@ Scope {
         if (menu.count === 0)
             return;
 
-        menu.index = Math.max(0, Math.min(menu.count - 1, menu.index + delta));
+        // No clamp: run off the end of the folder and the next wallpaper is
+        // the first one again.
+        menu.index += delta;
     }
 
     function applyFocused() {
@@ -238,10 +284,10 @@ Scope {
                     menu.turn(1);
                     break;
                 case Qt.Key_Home:
-                    menu.index = 0;
+                    menu.goTo(0);
                     break;
                 case Qt.Key_End:
-                    menu.index = menu.count - 1;
+                    menu.goTo(menu.count - 1);
                     break;
                 case Qt.Key_Return:
                 case Qt.Key_Enter:
@@ -315,15 +361,17 @@ Scope {
                 // carries the wait instead.
                 enabled: !Wallpapers.applying
 
+                // One delegate per slot on the rim, not per file: a slot is a
+                // mounting point on the disk, and the folder is wrapped round
+                // it as many times as it takes to fill the arc.
                 Repeater {
-                    model: Wallpapers.files
+                    model: menu.slots
 
                     delegate: Card {
-                        required property string modelData
                         required property int index
 
-                        path: modelData
                         ordinal: index
+                        path: menu.count > 0 ? Wallpapers.files[index % menu.count] : ""
                     }
                 }
             }
@@ -378,7 +426,7 @@ Scope {
                         // Spelt out rather than glyphed: this is the
                         // proportional face, and an arrow symbol here falls
                         // back to another font at the wrong size.
-                        return (menu.index + 1) + " of " + menu.count + "  ·  scroll to turn, Enter to set";
+                        return (menu.file + 1) + " of " + menu.count + "  ·  scroll to turn, Enter to set";
                     }
 
                     color: Wallpapers.error.length > 0 ? Theme.urgent : Theme.muted
@@ -400,14 +448,20 @@ Scope {
         // from the index, so it is already smooth — nothing below needs a
         // Behavior of its own, and nothing can drift out of step with anything
         // else, because it is all one number.
-        readonly property real angle: card.ordinal * menu.step - menu.wheelAngle
+        //
+        // Wrapped to the near half of the disk: a card that has travelled past
+        // the far side is described as coming round the other way instead,
+        // which is what turns the arc into an endless belt. The swap happens
+        // at half a turn away, well behind the disk and off screen, so nothing
+        // is ever seen jumping.
+        readonly property real angle: menu.wrapAngle(card.ordinal * menu.step - menu.wheelAngle)
         readonly property real radians: card.angle * Math.PI / 180
 
         // The same distance expressed in notches, which is what the size and
         // fade curves are written against.
         readonly property real notches: Math.abs(card.angle) / menu.step
 
-        readonly property bool front: card.ordinal === menu.index
+        readonly property bool front: card.ordinal === menu.slot
         readonly property bool live: Wallpapers.isCurrent(card.path)
 
         // Only the arc that is actually on screen is built.
@@ -570,7 +624,7 @@ Scope {
                 if (card.front)
                     menu.applyFocused();
                 else
-                    menu.index = card.ordinal;
+                    menu.index += menu.shortest(card.ordinal - menu.slot, menu.slots);
             }
         }
     }
