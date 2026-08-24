@@ -828,9 +828,14 @@ DripPanel {
 
                         const parts = [panel.btStatus(bt.device)];
 
+                        // Spelt out rather than glyphed: this line is
+                        // PanelText, which is the proportional face, so
+                        // a Nerd Font battery here falls back to another
+                        // font and lands at the wrong size beside the
+                        // words it sits in.
                         const battery = panel.btBattery(bt.device);
                         if (battery.length > 0)
-                            parts.push("󰁹 " + battery);
+                            parts.push("Battery " + battery);
 
                         if (bt.isPaired && !bt.isTrusted)
                             parts.push("Untrusted");

@@ -29,7 +29,7 @@ BarPill {
     BarText {
         text: {
             if (pill.charging)
-                return "\uf0e7 " + pill.percent + "%";
+                return "󰂄 " + pill.percent + "%";
 
             const icons = ["󰂃", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂"];
             const step = Math.max(0, Math.min(icons.length - 1, Math.floor(pill.percent / 10)));

@@ -96,14 +96,14 @@ ShellRoot {
         const name = (playerId(player) + " " + (player && player.identity ? player.identity : "")).toLowerCase();
 
         if (name.includes("spotify"))
-            return "";
+            return "󰝚";
         if (name.includes("firefox") || name.includes("zen"))
-            return "";
+            return "󰈹";
         if (name.includes("chrom"))
-            return "";
+            return "󰊯";
         if (name.includes("vlc") || name.includes("mpv"))
             return "󰕼";
-        return "";
+        return "󰎇";
     }
 
     function trackTitle(player) {

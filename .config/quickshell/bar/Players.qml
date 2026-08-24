@@ -38,18 +38,22 @@ Singleton {
         return player ? (player.dbusName || player.identity || "") : "";
     }
 
+    // Material Design glyphs throughout. The Font Awesome brand marks that
+    // used to sit here come from a heavier, differently-scaled icon set, so
+    // the media icon read as the odd one out beside the MDI volume and
+    // battery glyphs on the same bar.
     function playerIcon(player) {
         const name = (playerId(player) + " " + (player && player.identity ? player.identity : "")).toLowerCase();
 
         if (name.includes("spotify"))
-            return "\uf1bc";
+            return "󰝚";
         if (name.includes("firefox") || name.includes("zen"))
-            return "\uf269";
+            return "󰈹";
         if (name.includes("chrom"))
-            return "\uf268";
+            return "󰊯";
         if (name.includes("vlc") || name.includes("mpv"))
             return "󰕼";
-        return "\uf001";
+        return "󰎇";
     }
 
     function trackTitle(player) {
@@ -137,7 +141,7 @@ Singleton {
 
         let out = playerIcon(player) + " " + trackTitle(player);
         if (!player.isPlaying)
-            out = "⏸ " + out;
+            out = "󰏤 " + out;
         if (list.length > 1)
             out = out + " [" + list.length + "]";
 

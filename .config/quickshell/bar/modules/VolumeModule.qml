@@ -39,8 +39,11 @@ BarPill {
             if (pill.muted)
                 return "󰝟";
 
-            // Waybar's three-step ramp: quiet, middling, loud.
-            const icons = ["\uf026", "\uf027", "\uf028"];
+            // A three-step ramp: quiet, middling, loud. Material Design,
+            // to match the muted glyph above and the rest of the bar --
+            // the Font Awesome speakers these replaced sat lighter and
+            // smaller, so muting visibly changed the icon's weight.
+            const icons = ["󰕿", "󰖀", "󰕾"];
             const step = pill.percent < 34 ? 0 : (pill.percent < 67 ? 1 : 2);
             return icons[step] + "  " + pill.percent + "%";
         }

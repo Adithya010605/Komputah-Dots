@@ -13,17 +13,20 @@ Singleton {
 
     property int memoryPercent: 0
 
-    // The same five-step pie the waybar module drew.
+    // The same five-step pie the waybar module drew, in Material Design
+    // rather than the geometric-shapes block. Only ○ and ● exist in the
+    // Nerd Font; the three quarter-filled circles fell back to whatever font
+    // did have them and came out at a visibly smaller size on the bar.
     readonly property string memoryGlyph: {
         if (memoryPercent < 20)
-            return "○";
+            return "󰄰";
         if (memoryPercent < 40)
-            return "◔";
+            return "󰪟";
         if (memoryPercent < 60)
-            return "◑";
+            return "󰪡";
         if (memoryPercent < 80)
-            return "◕";
-        return "●";
+            return "󰪣";
+        return "󰝥";
     }
 
     function parseMeminfo(raw) {
