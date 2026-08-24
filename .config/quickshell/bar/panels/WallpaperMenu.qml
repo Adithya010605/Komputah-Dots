@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Effects
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
@@ -13,15 +15,21 @@ import "root:/components"
 // belong to a module you clicked. This one has no module and no anchor — it is
 // summoned by a keybind and takes over the screen.
 //
+// The wheel has no ends. Turn past the last wallpaper and the first comes
+// round again; turn back before the first and the last is already there. The
+// folder is simply wrapped onto the rim, repeated if it is too small to fill
+// the arc, so there is never an edge to run into.
+//
 // The wallpapers are mounted on a disk whose centre sits off the right edge, so
 // only the near arc of it is on screen. Turning the wheel brings the next one
 // round to the selection point. Nothing is stacked behind anything: every card
 // on the arc is in the foreground and legible, and the one you are choosing is
 // simply the one that has come round to the front and grown.
 //
-// Nothing here blurs or hides the desktop. What is behind the wheel is the
-// wallpaper you are currently on, which is the one thing worth comparing
-// against — the picker sits on it rather than over it.
+// Behind the wheel is the wallpaper you are currently on, blurred by the
+// compositor across the whole display — bar included — and washed by a light
+// scrim. It stays recognisable, because it is the thing you are comparing
+// against, but it is one continuous surface with no sharp strip left anywhere.
 Scope {
     id: menu
 
@@ -86,17 +94,27 @@ Scope {
     readonly property int radius: 300
     readonly property int centreInset: 40
 
-    // Degrees between one wallpaper and the next.
-    readonly property real step: 16
-
-    // Past this the cards have curled away round the back of the disk, so they
-    // are not drawn. Sized so the far ones still land inside the right edge
-    // rather than being sliced off by it.
-    readonly property int reach: 4
+    // Degrees between one wallpaper and the next, and how many of them are on
+    // screen either side of the choice. One setting, not two: on a disk this
+    // size the run of cards has to stay inside about 70° of the selection
+    // point or the far ones swing round behind the right edge, so reaching six
+    // deep means the step has to come down to fit them in that angle. It lands
+    // the outermost card at 66°, well inside the edge, and packs the near ones
+    // into a denser stack — which is the point of reaching further.
+    readonly property real step: 11
+    readonly property int reach: 6
 
     // Which way a card tilts as it travels round the rim. Mounted radially, so
     // a card below the selection point leans the way the disk is turning.
     readonly property real tiltSign: -1
+
+    // How big a card is out on the rim and at the selection point. Named
+    // rather than written into the scale curve because the reveal has to start
+    // on exactly the frame the chosen card is occupying, and a card that grew
+    // out of a slightly wrong rectangle would jump on the first frame.
+    readonly property real rimScale: 0.92
+    readonly property real frontScale: 1.12
+    readonly property real cardRadius: 18
 
     // How far the wheel has turned, in degrees. This is the one animated value
     // in the whole component: every card's position, tilt, size and fade is
@@ -151,6 +169,14 @@ Scope {
 
     function hide() {
         menu.open = false;
+
+        // Whatever the reveal was doing, it stops here. It is only torn down
+        // at unrender, though, a fade later: resetting it now would snap the
+        // chosen wallpaper back to card size in full view.
+        grow.stop();
+        retract.stop();
+        hold.stop();
+
         unrender.restart();
     }
 
@@ -180,8 +206,14 @@ Scope {
         interval: Theme.menuUnrenderDelay
         repeat: false
         onTriggered: {
-            if (!menu.open)
-                menu.rendered = false;
+            if (menu.open)
+                return;
+
+            menu.rendered = false;
+            menu.revealing = false;
+            menu.revealProgress = 0;
+            menu.revealPath = "";
+            menu.settledPath = "";
         }
     }
 
@@ -196,9 +228,143 @@ Scope {
         menu.index += delta;
     }
 
+    // ─── choosing one ────────────────────────────────────────────────
+    //
+    // Setting a wallpaper used to be a click, a pause, and then a different
+    // desktop the next time you looked at it — the change happened somewhere
+    // off screen and the picker had nothing to say about it. Now it happens
+    // where you can see it: the new wallpaper floods in behind the glass from
+    // the card you chose, as a circle spreading out from that exact point
+    // until it is the whole desktop.
+    //
+    // It stays behind everything. The wheel does not move, the wash does not
+    // lift, and the incoming wallpaper is blurred to match what the compositor
+    // is doing to the outgoing one either side of the wave front — because
+    // what is being replaced is the thing behind the glass, and a sharp image
+    // sliding over the top would be a different surface arriving rather than
+    // this one changing.
+    //
+    // The swap itself is held back until the circle has covered the screen.
+    // hyprpaper changes the desktop in one frame across the whole display, and
+    // run underneath a half-finished reveal that lands as a flash in the part
+    // that has not been reached yet; once the circle is closed there is
+    // nothing left to see it in.
+    //
+    // At the end the picker keeps standing there on the wallpaper it just set,
+    // holding its own copy of it behind the wheel until you leave. Choosing
+    // again floods the next one over that.
+
+    property bool revealing: false
+    property real revealProgress: 0
+    property string revealPath: ""
+
+    // What the flood left behind, held for the rest of the visit.
+    property string settledPath: ""
+
     function applyFocused() {
-        if (menu.focused.length > 0)
-            Wallpapers.apply(menu.focused);
+        if (menu.focused.length === 0 || menu.revealing || Wallpapers.applying)
+            return;
+
+        // Nothing to flood in if it is already on the desktop, and now that
+        // choosing does not close the picker there is nothing else this could
+        // sensibly mean either. The caption already says so.
+        if (Wallpapers.isCurrent(menu.focused))
+            return;
+
+        menu.revealPath = menu.focused;
+        menu.revealing = true;
+
+        grow.restart();
+    }
+
+    // Called when the reveal finishes and again when the swap does, and hands
+    // the wallpaper over once both are done, however they interleave.
+    //
+    // The picker does not close on a choice. Setting a wallpaper is something
+    // you do two or three times before you settle on one, and a picker that
+    // shuts every time you try one makes you reopen it to compare — so it
+    // stays up, on the wallpaper it just put on the desktop, ready for the
+    // next try. Escape is how you leave.
+    function settle() {
+        if (!menu.revealing || grow.running || Wallpapers.applying)
+            return;
+
+        // A swap that failed leaves the old wallpaper behind the picker, so
+        // the reveal is showing something that is not there. The circle closes
+        // again, with the error under the caption.
+        if (Wallpapers.error.length > 0) {
+            retract.restart();
+            return;
+        }
+
+        hold.start();
+    }
+
+    NumberAnimation {
+        id: grow
+
+        target: menu
+        property: "revealProgress"
+        to: 1
+
+        duration: Theme.revealDuration
+        easing.type: Easing.InOutQuart
+
+        onFinished: {
+            Wallpapers.apply(menu.revealPath);
+
+            // apply() can decline — the file went away, something else is
+            // already swapping — and then there is nothing to wait for.
+            if (!Wallpapers.applying)
+                menu.settle();
+        }
+    }
+
+    NumberAnimation {
+        id: retract
+
+        target: menu
+        property: "revealProgress"
+        to: 0
+
+        duration: Theme.revealAbortDuration
+        easing.type: Easing.OutCubic
+
+        onFinished: {
+            menu.revealing = false;
+            menu.revealPath = "";
+        }
+    }
+
+    // A beat on the covered screen before the handover. Without it the fade
+    // starts on the same frame the flood stops, and the two run together into
+    // something that reads as a stumble at the end of the move.
+    Timer {
+        id: hold
+
+        interval: Theme.revealSettle
+        repeat: false
+        onTriggered: menu.handOver()
+    }
+
+    // The flood standing down. Not an animation and nothing to see: the image
+    // it was painting is handed to the backdrop underneath, which is drawing
+    // exactly the same thing, and the masked copy is switched off in the same
+    // frame. The next choice floods over the top of it.
+    function handOver() {
+        menu.settledPath = menu.revealPath;
+
+        menu.revealing = false;
+        menu.revealProgress = 0;
+        menu.revealPath = "";
+    }
+
+    Connections {
+        target: Wallpapers
+
+        function onApplyingChanged() {
+            menu.settle();
+        }
     }
 
     // ─── the surface ─────────────────────────────────────────────────
@@ -233,6 +399,121 @@ Scope {
             bottom: true
         }
 
+        // ─── what the picker has already put on the desktop ──────────
+        //
+        // Everything the picker set this visit stays painted here, underneath
+        // the next flood, for as long as the picker is open. It is the same
+        // image the compositor is now blurring behind the window, so nothing
+        // changes when the flood hands over to it — but it is the picker's own
+        // copy, which is the point: what Hyprland has cached behind a layer
+        // surface that has been up since before the swap is not something this
+        // can rely on, and one frame of the previous wallpaper reappearing
+        // behind the wheel would undo the whole change.
+        //
+        // Dropped when the picker closes, onto a desktop that agrees with it.
+        Backdrop {
+            anchors.fill: parent
+            visible: menu.settledPath.length > 0
+            path: menu.settledPath
+        }
+
+        // ─── the new wallpaper flooding in ───────────────────────────
+        //
+        // Under everything else in the picker — the wash, the wheel, the
+        // caption all sit on top of it — so it reads as the desktop changing
+        // rather than as a panel arriving. What is outside the circle is the
+        // wallpaper that is on the desktop now, blurred by the compositor;
+        // what is inside is the new one, blurred here to match, which is the
+        // whole trick.
+        Item {
+            id: reveal
+
+            anchors.fill: parent
+            visible: menu.revealing
+
+            // The point the wave starts from: the middle of the card at the
+            // selection point, which is the leftmost point of the disk.
+            readonly property real originX: stage.centreX - menu.radius
+            readonly property real originY: stage.centreY
+
+            // Far enough to reach the corner furthest from the origin, which
+            // is the last of the screen to be covered.
+            readonly property real span: Math.sqrt(Math.pow(Math.max(reveal.originX, reveal.width - reveal.originX), 2) + Math.pow(Math.max(reveal.originY, reveal.height - reveal.originY), 2))
+
+            // Carries the feather with it: the front is where the image is
+            // still solid, and it fades out over the distance behind it.
+            readonly property real front: menu.revealProgress * reveal.span * (1 + Theme.revealFeather)
+
+            Backdrop {
+                anchors.fill: parent
+                path: menu.revealPath
+                mask: wave
+            }
+
+            // The wave front itself, as an alpha mask: solid out to the front,
+            // then feathered away over the last stretch of it.
+            Item {
+                id: wave
+
+                anchors.fill: parent
+                layer.enabled: true
+                visible: false
+
+                Shape {
+                    anchors.fill: parent
+                    preferredRendererType: Shape.CurveRenderer
+
+                    ShapePath {
+                        strokeWidth: 0
+                        strokeColor: "transparent"
+
+                        fillGradient: RadialGradient {
+                            centerX: reveal.originX
+                            centerY: reveal.originY
+                            centerRadius: Math.max(1, reveal.front)
+
+                            focalX: centerX
+                            focalY: centerY
+                            focalRadius: 0
+
+                            GradientStop {
+                                position: 0
+                                color: "white"
+                            }
+
+                            GradientStop {
+                                position: Math.max(0, 1 - Theme.revealFeather)
+                                color: "white"
+                            }
+
+                            GradientStop {
+                                position: 1
+                                color: "transparent"
+                            }
+                        }
+
+                        startX: 0
+                        startY: 0
+
+                        PathLine {
+                            x: wave.width
+                            y: 0
+                        }
+
+                        PathLine {
+                            x: wave.width
+                            y: wave.height
+                        }
+
+                        PathLine {
+                            x: 0
+                            y: wave.height
+                        }
+                    }
+                }
+            }
+        }
+
         // A wash rather than a curtain. Enough to lift the caption off a bright
         // wallpaper, not enough to stop you seeing what you are replacing.
         Rectangle {
@@ -249,7 +530,14 @@ Scope {
 
             MouseArea {
                 anchors.fill: parent
-                onClicked: menu.hide()
+
+                // Once the reveal is running the choice is made and the swap
+                // is in flight; a click on the way past should not take the
+                // picker down under it.
+                onClicked: {
+                    if (!menu.revealing)
+                        menu.hide();
+                }
             }
         }
 
@@ -262,6 +550,9 @@ Scope {
             readonly property real centreX: width - menu.centreInset
             readonly property real centreY: height / 2
 
+            // Stays exactly where it is through the reveal. The change is
+            // happening behind the wheel, not to it, and lifting the wheel out
+            // of the way would say the opposite.
             opacity: menu.open ? 1 : 0
 
             Behavior on opacity {
@@ -275,6 +566,12 @@ Scope {
             // only some of the keys wanted here have one, and splitting the
             // navigation across two mechanisms hides half of it.
             Keys.onPressed: event => {
+                // The wheel stops taking input the moment a card leaves it.
+                if (menu.revealing) {
+                    event.accepted = true;
+                    return;
+                }
+
                 switch (event.key) {
                 case Qt.Key_Escape:
                     menu.hide();
@@ -437,6 +734,55 @@ Scope {
                 }
             }
         }
+
+    }
+
+    // ─── a wallpaper as it looks behind the glass ────────────────────
+    //
+    // The blur is what makes one of these read as the desktop rather than as a
+    // picture of it. Tuned against the compositor's own blur on the wallpaper
+    // either side of the wave front — the two have to be close enough that the
+    // front reads as a boundary between two wallpapers and not between two
+    // amounts of blur.
+    //
+    // Decoded small on purpose. It is about to be blurred to the point where a
+    // full-size decode is thrown away, and a 4K jpeg arriving asynchronously in
+    // the middle of the flood is a frame of nothing at exactly the wrong moment.
+    component Backdrop: Item {
+        id: backdrop
+
+        property string path: ""
+
+        // An item whose alpha decides how much of this is drawn where. Null
+        // for the whole screen.
+        property Item mask: null
+
+        Image {
+            id: picture
+
+            anchors.fill: parent
+            source: backdrop.path.length > 0 ? "file://" + encodeURI(backdrop.path) : ""
+            fillMode: Image.PreserveAspectCrop
+            sourceSize.width: 640
+            cache: true
+            smooth: true
+
+            // Drawn only through the effect below.
+            visible: false
+        }
+
+        MultiEffect {
+            anchors.fill: parent
+            source: picture
+
+            blurEnabled: true
+            blur: 1
+            blurMax: 48
+            blurMultiplier: 1.4
+
+            maskEnabled: backdrop.mask !== null
+            maskSource: backdrop.mask
+        }
     }
 
     // ─── one wallpaper on the rim ────────────────────────────────────
@@ -485,7 +831,7 @@ Scope {
         // Continuous in the angle rather than switched on the index: the card
         // grows as it arrives at the selection point instead of popping the
         // moment the selection changes under it.
-        scale: 0.92 + 0.20 * Math.max(0, 1 - card.notches)
+        scale: menu.rimScale + (menu.frontScale - menu.rimScale) * Math.max(0, 1 - card.notches)
 
         // A shallow falloff, and no shading over the image itself. Enough for
         // the arc to have some depth, nowhere near enough to push these into a
@@ -508,7 +854,7 @@ Scope {
             id: frame
 
             anchors.fill: parent
-            radius: 18
+            radius: menu.cardRadius
             antialiasing: true
             color: Qt.rgba(1, 1, 1, 0.05)
 

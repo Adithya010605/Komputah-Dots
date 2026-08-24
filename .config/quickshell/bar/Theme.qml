@@ -202,6 +202,28 @@ Singleton {
     // as a jump, short enough to hold an arrow key down through.
     readonly property int wheelTurnDuration: 420
 
+    // Choosing one. The new wallpaper floods in behind the glass as a circle
+    // spreading from the card you chose. It has most of the width of the
+    // display to cross, and it is the whole of the feedback that the choice
+    // landed, so it is slower than anything else in the shell and eased at
+    // both ends — heavy to start moving, and slowing into the far corners
+    // rather than stopping dead in them.
+    readonly property int revealDuration: 1000
+
+    // How soft the wave front is, as a fraction of how far it has travelled.
+    // Proportional rather than fixed: a spreading front thins as it goes, and
+    // a hard edge on a blurred image is a cut rather than a flood.
+    readonly property real revealFeather: 0.16
+
+    // The beat between the circle closing over the last corner and the picker
+    // handing the wallpaper back to the compositor, on top of however long the
+    // swap behind it still needs.
+    readonly property int revealSettle: 260
+
+    // Closed again when the swap fails. Quicker than the open: an undo should
+    // not take as long as the thing it is undoing.
+    readonly property int revealAbortDuration: 320
+
     // ─── the launcher ────────────────────────────────────────────────
     //
     // Summoned like the wallpaper picker and sharing its scrim and fades, but
