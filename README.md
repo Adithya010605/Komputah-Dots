@@ -84,9 +84,6 @@ the same values, so the two bars read as the same object.
 ~/.config/quickshell/bar/bar-switch.sh on|off    # explicit
 ```
 
-`quickshell/CLAUDE.md` is the brief the whole shell was built against — the
-visual language, the theming rule, and the drip behaviour in priority order.
-
 ## Keybindings
 
 `Alt` is the main modifier; `Super` handles session control. Both work for

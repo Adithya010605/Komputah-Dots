@@ -33,6 +33,7 @@ EXCLUDES=(
   # Per-machine tool state, not configuration: whatever an editor or agent
   # leaves in a config directory belongs to this machine, not the setup.
   '.claude/*'
+  'CLAUDE.md'
   '.neoconf.json'
   'lua/plugins/example.lua'
   'LICENSE'
