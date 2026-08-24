@@ -175,6 +175,42 @@ Singleton {
     readonly property color urgent: "#e06c75"
     readonly property color urgentSoft: withAlpha("#e06c75", 0.22)
 
+    // ─── plots ───────────────────────────────────────────────────────
+    //
+    // A trace is the accent at full strength over a wash of the same colour
+    // that falls away to nothing at the baseline, so the graph reads as a level
+    // in the glass rather than as a chart drawn on top of it.
+
+    readonly property int plotHeight: 44
+    readonly property color plotLine: accent
+    readonly property color plotFill: withAlpha(accentBase, 0.42)
+    readonly property color plotFillFade: withAlpha(accentBase, 0.0)
+    readonly property color plotGrid: Qt.rgba(1, 1, 1, 0.07)
+    readonly property color plotFloor: Qt.rgba(1, 1, 1, 0.05)
+
+    // ─── heat ────────────────────────────────────────────────────────
+    //
+    // Temperature and power get their own ramp rather than the accent, because
+    // a hot part should read as hot on every wallpaper.
+
+    readonly property color warn: "#e5c07b"
+
+    // Cool sits on the wallpaper accent and only leaves it as things heat up,
+    // so an idle machine still looks like the rest of the shell.
+    function heat(fraction: real): color {
+        const t = Math.max(0, Math.min(1, fraction));
+
+        if (t < 0.5)
+            return Qt.tint(root.accent, root.withAlpha(root.warn, t * 2));
+
+        return Qt.tint(root.warn, root.withAlpha(root.urgent, (t - 0.5) * 2));
+    }
+
+    // Where a reading sits between comfortable and worth looking at.
+    function heatOf(value: real, cool: real, hot: real): color {
+        return root.heat((value - cool) / (hot - cool));
+    }
+
     // ─── motion ──────────────────────────────────────────────────────
 
     readonly property int hoverDuration: 140

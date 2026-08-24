@@ -13,6 +13,11 @@ Singleton {
 
     property int memoryPercent: 0
 
+    // The same figures the percentage is derived from, in kibibytes, for
+    // anything that wants to show the amount rather than the pressure.
+    property int memoryTotalKb: 0
+    property int memoryUsedKb: 0
+
     // The same five-step pie the waybar module drew, in Material Design
     // rather than the geometric-shapes block. Only ○ and ● exist in the
     // Nerd Font; the three quarter-filled circles fell back to whatever font
@@ -47,6 +52,8 @@ Singleton {
         if (total <= 0)
             return;
 
+        root.memoryTotalKb = total;
+        root.memoryUsedKb = total - available;
         root.memoryPercent = Math.round(((total - available) / total) * 100);
     }
 

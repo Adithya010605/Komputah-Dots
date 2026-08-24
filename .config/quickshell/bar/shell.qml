@@ -173,6 +173,8 @@ ShellRoot {
 
     PomoPanel {}
 
+    SystemPanel {}
+
     SettingsPanel {}
 
     NotificationPanel {}
