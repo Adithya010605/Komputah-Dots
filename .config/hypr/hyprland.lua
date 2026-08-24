@@ -209,7 +209,9 @@ hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("hyprpicker -a"))
 
 -- Launchers
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
-hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("~/.config/rofi/scripts/wallpaper-picker.sh"))
+-- Wallpaper deck, in the quickshell process that is already running. The rofi
+-- picker it replaces is still at ~/.config/rofi/scripts/wallpaper-picker.sh.
+hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("quickshell -c bar ipc call wallpaper toggle"))
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("~/.config/rofi/scripts/clipboard.sh"))
 
 -- Bar controls (quickshell bar is primary; waybar is the fallback)
@@ -341,6 +343,11 @@ hl.layer_rule({ match = { namespace = "quickshell-system" }, blur = true, ignore
 
 -- Quickshell settings popup
 hl.layer_rule({ match = { namespace = "quickshell-settings" }, blur = true, ignore_alpha = 0 })
+
+-- Quickshell wallpaper picker. The seam this used to leave across the display
+-- was the surface stopping at the bar's exclusive zone, not the blur itself;
+-- the picker now ignores that zone, so this covers the whole screen.
+hl.layer_rule({ match = { namespace = "quickshell-wallpaper" }, blur = true, ignore_alpha = 0 })
 
 -- Quickshell notification log
 hl.layer_rule({ match = { namespace = "quickshell-notifications" }, blur = true, ignore_alpha = 0 })

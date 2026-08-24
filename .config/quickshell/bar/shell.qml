@@ -47,6 +47,26 @@ ShellRoot {
         }
     }
 
+    // The wallpaper picker is not one of the bar's panels, so it gets its own
+    // target rather than a name in the one above:
+    //
+    //   quickshell -c bar ipc call wallpaper toggle
+    IpcHandler {
+        target: "wallpaper"
+
+        function toggle(): void {
+            wallpaperMenu.toggle();
+        }
+
+        function open(): void {
+            wallpaperMenu.show();
+        }
+
+        function close(): void {
+            wallpaperMenu.hide();
+        }
+    }
+
     PanelWindow {
         id: bar
 
@@ -182,4 +202,13 @@ ShellRoot {
     // Not a panel you open: the same drip, hanging off the bell on its own
     // whenever something comes in.
     NotificationToasts {}
+
+    // ─── and what does not hang from it ──────────────────────────────
+
+    // No module, no anchor, no drip: summoned by keybind and taking over the
+    // screen. It lives in this process anyway so it shares the palette and is
+    // already loaded when the key is pressed.
+    WallpaperMenu {
+        id: wallpaperMenu
+    }
 }

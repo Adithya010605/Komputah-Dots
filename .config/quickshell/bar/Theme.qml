@@ -33,7 +33,21 @@ Singleton {
         return Qt.rgba(c.r, c.g, c.b, opacity);
     }
 
-    readonly property color accentBase: pick("color12", "#8fb3a1")
+    // Every accent in the shell is derived from this one colour, so easing it
+    // eases all of them at once. Without this the whole shell — bar, borders,
+    // active states, the tint in the glass — snaps to the new palette the
+    // instant pywal rewrites colors.json, which is the jolt you see at the end
+    // of a wallpaper change rather than anything the picker itself is doing.
+    // Not readonly, only because a Behavior cannot attach to a readonly
+    // property. It is still a binding and nothing assigns to it.
+    property color accentBase: pick("color12", "#8fb3a1")
+
+    Behavior on accentBase {
+        ColorAnimation {
+            duration: 520
+            easing.type: Easing.InOutCubic
+        }
+    }
 
     FileView {
         path: "/home/adi/.cache/wal/colors.json"
@@ -162,6 +176,31 @@ Singleton {
     // How long the surface lingers after a close, so the retract finishes
     // before the window is torn down.
     readonly property int unrenderDelay: 280
+
+    // ─── the wallpaper wheel ─────────────────────────────────────────
+    //
+    // The picker is summoned rather than dripped, so it gets its own timings:
+    // a surface that takes over the screen has to arrive more gently than one
+    // hanging off the module you just clicked.
+
+    // Sits over a fully blurred desktop (see the layer rule in hyprland.lua),
+    // so this only has to take the brightness down far enough for white text
+    // and the cards to sit clear of it.
+    readonly property color scrim: Qt.rgba(0, 0, 0, 0.38)
+
+    readonly property int menuFadeIn: 220
+    readonly property int menuFadeOut: 150
+    readonly property int menuRiseDuration: 420
+    readonly property int menuUnrenderDelay: 240
+
+    // The disk the wallpapers are mounted on, drawn as the faintest possible
+    // glass so the wheel reads as one object rather than as loose cards.
+    readonly property color diskFill: Qt.rgba(1, 1, 1, 0.04)
+    readonly property color diskEdge: Qt.rgba(1, 1, 1, 0.09)
+
+    // One notch of the wheel. Long enough to read as mass turning rather than
+    // as a jump, short enough to hold an arrow key down through.
+    readonly property int wheelTurnDuration: 420
 
     // ─── notifications ───────────────────────────────────────────────
 
