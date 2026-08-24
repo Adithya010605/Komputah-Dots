@@ -30,6 +30,9 @@ EXCLUDES=(
   '*.tmp'
   '*~'
   '__pycache__/*'
+  # Per-machine tool state, not configuration: whatever an editor or agent
+  # leaves in a config directory belongs to this machine, not the setup.
+  '.claude/*'
   '.neoconf.json'
   'lua/plugins/example.lua'
   'LICENSE'
