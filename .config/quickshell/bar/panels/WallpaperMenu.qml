@@ -209,10 +209,14 @@ Scope {
         visible: menu.rendered
         color: "transparent"
 
-        // Ignores the bar's exclusive zone as well as claiming none of its
-        // own, so the picker reaches the top of the screen instead of starting
-        // in a seam below the bar.
-        exclusiveZone: 0
+        // Ignores the bar's exclusive zone, so the picker reaches the top of
+        // the screen instead of starting in a seam below the bar — which is
+        // what left the strip behind the bar unblurred and unwashed while the
+        // rest of the display was covered.
+        //
+        // Only the mode is set here. Assigning exclusiveZone at all puts the
+        // window back into Normal exclusion, zone or no zone, which is exactly
+        // the geometry this is trying to avoid; Ignore already claims nothing.
         exclusionMode: ExclusionMode.Ignore
 
         WlrLayershell.namespace: "quickshell-wallpaper"
