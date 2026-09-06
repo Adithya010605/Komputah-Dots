@@ -29,7 +29,6 @@ hl.monitor({
 
 local terminal    = "kitty"
 local fileManager = "nautilus"
-local menu        = "rofi -show drun"
 
 
 -------------------
@@ -208,11 +207,19 @@ hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd("hyprshot -o ~/Pictures/Scree
 hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("hyprpicker -a"))
 
 -- Launchers
--- Super+R is the quickshell launcher: applications, sums and conversions in one
--- box, in the process that is already running. Alt+R stays on rofi as the
--- fallback, the same way Alt+B keeps waybar behind the quickshell bar.
-hl.bind(mod .. " + R", hl.dsp.exec_cmd("quickshell -c bar ipc call launcher toggle"))
-hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
+-- Win+R is the launcher: applications, sums and conversions in one box, in the
+-- quickshell process that is already running. There is no rofi drun behind it
+-- any more — unlike waybar on Alt+B, which is a whole bar worth keeping a way
+-- back to, a second application menu on a second chord was only ever a thing to
+-- forget was there.
+--
+-- Bound to mainMod, which is ALT, and that is not a typo. kb_options above sets
+-- altwin:swap_lalt_lwin, so the two keys are exchanged before Hyprland ever sees
+-- them: the key under your left thumb marked Alt sends SUPER, and the one marked
+-- Win sends ALT. Every binding in this file reads inverted from the key you
+-- actually press, which is why mainMod — Alt+Return for the terminal, Alt+W for
+-- the wallpaper deck — is the set pressed with Win.
+hl.bind(mainMod .. " + R", hl.dsp.exec_cmd("quickshell -c bar ipc call launcher toggle"))
 -- Wallpaper deck, in the quickshell process that is already running. The rofi
 -- picker it replaces is still at ~/.config/rofi/scripts/wallpaper-picker.sh.
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("quickshell -c bar ipc call wallpaper toggle"))
@@ -354,8 +361,20 @@ hl.layer_rule({ match = { namespace = "quickshell-settings" }, blur = true, igno
 hl.layer_rule({ match = { namespace = "quickshell-wallpaper" }, blur = true, ignore_alpha = 0 })
 
 -- Quickshell launcher. Covers the whole display and ignores the bar's
--- exclusive zone, same as the picker above.
-hl.layer_rule({ match = { namespace = "quickshell-launcher" }, blur = true, ignore_alpha = 0 })
+-- exclusive zone, same as the picker above — but unlike the picker, only the
+-- card is blurred and the desktop behind it is left alone.
+--
+-- The threshold is what draws that line, since a layer rule cannot name a
+-- region. It works because the launcher puts nothing at all behind its card:
+-- the sheet that catches clicks outside is fully transparent, so the desktop
+-- shows through it sharp and unblurred, while the card sits well above this
+-- number and is blurred over every one of its pixels — the same full-surface
+-- frost the pomo panel gets, rather than a partial one.
+--
+-- Which is why this is low rather than high. Dropping `blur` altogether would
+-- have been the obvious way to unblur the desktop, and it would have taken the
+-- frost out of the card with it — the one place the blur is doing any work.
+hl.layer_rule({ match = { namespace = "quickshell-launcher" }, blur = true, ignore_alpha = 0.1 })
 
 -- Quickshell notification log
 hl.layer_rule({ match = { namespace = "quickshell-notifications" }, blur = true, ignore_alpha = 0 })

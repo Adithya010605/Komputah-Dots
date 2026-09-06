@@ -226,10 +226,11 @@ Singleton {
             const used = root.frecency(entry.id);
 
             if (trimmed.length === 0) {
-                // An empty box is a list of what you use. Everything else is
-                // ranked below it rather than left out, so the first open on a
-                // machine that has learnt nothing yet still shows something —
-                // an empty card reads as broken, not as ready.
+                // Nothing typed: purely what you use, most-used first. The
+                // launcher no longer asks for this — an empty box there shows no
+                // rows at all — but the ranking is the honest answer to an empty
+                // query and this stays the function's contract rather than
+                // something the one caller happens not to exercise.
                 results.push({
                     "entry": entry,
                     "rank": used

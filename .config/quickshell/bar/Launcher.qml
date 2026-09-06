@@ -32,6 +32,15 @@ Singleton {
     readonly property var results: {
         const rows = [];
 
+        // An empty box is a box, and nothing else. The card opens as the search
+        // field alone and grows the moment there is something to show — so what
+        // arrives on Super+R is the one thing you came to use, rather than a
+        // list of applications chosen for you that you were going to type past
+        // anyway. It also means the rows only ever appear in answer to a
+        // keystroke, which is what makes them worth animating in.
+        if (root.query.trim().length === 0)
+            return rows;
+
         const answer = root.answerFor(root.query);
         if (answer)
             rows.push(answer);

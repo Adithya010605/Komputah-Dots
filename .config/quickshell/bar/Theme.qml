@@ -18,6 +18,7 @@ Singleton {
                 "foreground": "#a1bac4"
             },
             "colors": {
+                "color2": "#996675",
                 "color4": "#638574",
                 "color6": "#497497",
                 "color12": "#8fb3a1"
@@ -250,6 +251,49 @@ Singleton {
     // nothing moves upward as you type.
     readonly property real launcherTopFraction: 0.22
 
+    // ─── the summoned menus' accent ──────────────────────────────────
+    //
+    // The two surfaces in the shell that do not take the accent everything else
+    // takes: the launcher and the power wheel. This is rofi's
+    // `selected-normal-background` — the colour its power menu highlighted with
+    // — which pywal writes as color2, where the rest of the shell is on color12.
+    //
+    // Deliberately a second colour rather than a second name for the first.
+    // These two have no bar to belong to, no module to hang from, and cover the
+    // screen when they are up; they are also the two things here that used to be
+    // rofi menus. Giving them rofi's own highlight is what makes them a pair,
+    // and what keeps them distinct from the bar they never touch.
+    //
+    // Not readonly for the same reason accentBase is not: a Behavior cannot
+    // attach to a readonly property. It is still a binding and nothing assigns
+    // to it.
+    property color menuAccentBase: pick("color2", "#996675")
+
+    Behavior on menuAccentBase {
+        ColorAnimation {
+            duration: 520
+            easing.type: Easing.InOutCubic
+        }
+    }
+
+    readonly property color menuAccent: withAlpha(menuAccentBase, 0.85)
+    readonly property color menuAccentSoft: withAlpha(menuAccentBase, 0.30)
+
+    // The card is the largest surface in the shell and it sits on a sharp,
+    // undimmed desktop, so far more of what is behind it survives the blur than
+    // on any panel. Left on the shell's usual whisper of a wash it would take
+    // its colour from whatever happened to be underneath — a red diff, a photo,
+    // a bright page — and read as a different object every time it opened. This
+    // is heavy enough to hold its colour through all of that, and it is why the
+    // launcher looks like the pomo panel rather than like a hole cut in the
+    // screen.
+    readonly property color launcherWash: withAlpha(menuAccentBase, 0.12)
+
+    // Carried through the card's own furniture, the way the pomo panel carries
+    // its accent through the dial and the controls: the search mark that opens
+    // the box, the rule under it, and the caption naming what Enter does.
+    readonly property color launcherRule: withAlpha(menuAccentBase, 0.24)
+
     readonly property int launcherRadius: 22
     readonly property int launcherFieldHeight: 62
     readonly property int launcherRowHeight: 50
@@ -263,7 +307,7 @@ Singleton {
     // you go and look around; this one is in the way of what you were doing.
     readonly property int launcherFadeIn: 160
     readonly property int launcherFadeOut: 110
-    readonly property int launcherRise: 260
+    readonly property int launcherRise: 320
     readonly property int launcherUnrenderDelay: 200
 
     // How far the card starts below where it settles, and how far down it is
@@ -271,10 +315,54 @@ Singleton {
     readonly property int launcherRiseDistance: 14
     readonly property real launcherRestScale: 0.985
 
-    // The selected row. Filled rather than outlined, because the selection
-    // moves on every keystroke and an outline redrawing that often flickers.
-    readonly property color launcherSelection: withAlpha(accentBase, 0.20)
-    readonly property color launcherSelectionEdge: withAlpha(accentBase, 0.34)
+    // The card comes to rest the way the drip does, carrying a little past
+    // where it stops and easing back — the difference between a surface with
+    // some weight to it and one that is simply drawn at its final position on
+    // a later frame. Far gentler than the drip's, because the card travels
+    // fourteen pixels rather than the height of a panel.
+    readonly property real launcherOvershoot: 1.1
+
+    // Growing and shrinking as results come and go. Deliberately quicker than
+    // everything else about the card: this one runs on *every keystroke*, and
+    // an edge still easing towards its last size when the next letter lands
+    // never arrives anywhere. Short enough to keep up with typing, long enough
+    // not to snap.
+    readonly property int launcherResize: 200
+
+    // ─── the result rows ─────────────────────────────────────────────
+
+    readonly property int launcherRowSpacing: 2
+    readonly property int launcherRowInset: 8
+    readonly property int launcherRowRadius: 14
+
+    // Rows arrive in a run rather than all together — each one a beat behind
+    // the one above it, so the list reads as filling downward out of the box
+    // you are typing into rather than as a block appearing under it.
+    readonly property int launcherRowRise: 260
+    readonly property int launcherRowDrop: 10
+    readonly property int launcherStagger: 26
+
+    // Where the stagger stops. Past this many rows the delay is what you would
+    // notice rather than the cascade, and the bottom of the list would still be
+    // arriving after the top of it was already being read.
+    readonly property int launcherStaggerCap: 5
+
+    // The selected row. One shape that slides between rows rather than a fill
+    // that lights up and goes out on each of them: the selection is a single
+    // thing being moved, and cross-fading two rectangles says the opposite.
+    // Filled rather than outlined, because it moves on every keystroke and an
+    // outline redrawing that often flickers.
+    //
+    // This is the one that matters most: it is doing literally the job rofi's
+    // selected-normal-background does in the power menu, on the same colour.
+    readonly property color launcherSelection: withAlpha(menuAccentBase, 0.20)
+    readonly property color launcherSelectionEdge: withAlpha(menuAccentBase, 0.34)
+
+    // One row's worth of travel. Slow enough to be followed by eye — the whole
+    // point of sliding it is that you can see where it went — and quick enough
+    // that holding an arrow key down does not fall behind.
+    readonly property int launcherGlide: 200
+
 
     // ─── notifications ───────────────────────────────────────────────
 
