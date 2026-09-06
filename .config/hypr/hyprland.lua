@@ -243,13 +243,11 @@ hl.bind(mod .. " + L", hl.dsp.exec_cmd("~/.config/hypr/scripts/lock.sh"))
 -- hyprlock instead of leaving a TTY as the only option.
 hl.bind(mod .. " + SHIFT + L", hl.dsp.exec_cmd("~/.config/hypr/scripts/lock.sh"), { locked = true })
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("~/.config/hypr/scripts/night-light-toggle.sh"))
--- Lock, wait for it to actually be up, then go down. The old form raced:
--- hyprlock was backgrounded and the machine suspended 0.5s later whether or not
--- the lock surface had mapped yet.
-hl.bind(mod .. " + S", hl.dsp.exec_cmd("sh -c \"loginctl lock-session && sleep 1 && systemctl suspend\""))
 hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd("~/.config/hypr/scripts/no-sleep-toggle.sh"))
-hl.bind(mod .. " + SHIFT + Return", hl.dsp.exec_cmd("~/.config/rofi/scripts/power-menu.sh"))
-hl.bind(mod .. " + E", hl.dsp.exit())
+-- The power wheel, in the quickshell process that is already running. Same
+-- chord as the rofi menu it replaces, so the fingers do not have to be retrained
+-- for it; the rofi script is still at ~/.config/rofi/scripts/power-menu.sh.
+hl.bind(mod .. " + SHIFT + Return", hl.dsp.exec_cmd("quickshell -c bar ipc call power toggle"))
 
 -- App launchers
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
@@ -375,6 +373,11 @@ hl.layer_rule({ match = { namespace = "quickshell-wallpaper" }, blur = true, ign
 -- have been the obvious way to unblur the desktop, and it would have taken the
 -- frost out of the card with it — the one place the blur is doing any work.
 hl.layer_rule({ match = { namespace = "quickshell-launcher" }, blur = true, ignore_alpha = 0.1 })
+
+-- Quickshell power wheel. Blurred across the whole surface like the wallpaper
+-- picker rather than masked by alpha like the launcher: this one has a scrim and
+-- is meant to take the screen over while you decide.
+hl.layer_rule({ match = { namespace = "quickshell-power" }, blur = true, ignore_alpha = 0 })
 
 -- Quickshell notification log
 hl.layer_rule({ match = { namespace = "quickshell-notifications" }, blur = true, ignore_alpha = 0 })

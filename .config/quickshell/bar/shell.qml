@@ -87,6 +87,25 @@ ShellRoot {
         }
     }
 
+    // And the power wheel, on the same reasoning again:
+    //
+    //   quickshell -c bar ipc call power toggle
+    IpcHandler {
+        target: "power"
+
+        function toggle(): void {
+            powerMenu.toggle();
+        }
+
+        function open(): void {
+            powerMenu.show();
+        }
+
+        function close(): void {
+            powerMenu.hide();
+        }
+    }
+
     PanelWindow {
         id: bar
 
@@ -234,4 +253,12 @@ ShellRoot {
     LauncherMenu {
         id: appLauncher
     }
+
+    // The same again, and the wallpaper picker's wheel at a fraction of its
+    // size. In this process because the alternative — spawning rofi to ask a
+    // five-way question — is what this replaces.
+    PowerMenu {
+        id: powerMenu
+    }
+
 }

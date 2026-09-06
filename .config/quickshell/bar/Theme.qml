@@ -197,6 +197,10 @@ Singleton {
     // Sits over a fully blurred desktop (see the layer rule in hyprland.lua),
     // so this only has to take the brightness down far enough for white text
     // and the cards to sit clear of it.
+    //
+    // The wheel's alone. The launcher deliberately has no scrim at all — it
+    // leaves the desktop behind it sharp and undimmed, and an empty sheet is
+    // what lets its layer rule tell card from backdrop by alpha.
     readonly property color scrim: Qt.rgba(0, 0, 0, 0.38)
 
     readonly property int menuFadeIn: 220
@@ -363,6 +367,56 @@ Singleton {
     // that holding an arrow key down does not fall behind.
     readonly property int launcherGlide: 200
 
+    // ─── the power wheel ─────────────────────────────────────────────
+    //
+    // Built like the wallpaper wheel and deliberately much smaller than it. That
+    // one is a gallery: the whole point is judging a photograph, so the cards
+    // have to be big enough to judge and the disk has to be big enough to carry
+    // them. This one holds five glyphs. A glyph is legible at a fraction of the
+    // size, so the disk comes in to match and the wheel sits in the right-hand
+    // corner of the screen rather than spanning its height.
+
+    // A disc, not a card — five identical circles on a rim, which is the whole
+    // reason this can be so much smaller than the picker.
+    readonly property int powerItemSize: 62
+
+    // How far the discs orbit from the centre — not how big the disk is, which
+    // is worked out from this in PowerMenu.qml so the disk always contains them.
+    //
+    // Roughly half the picker's radius. Small enough to keep the whole arc
+    // inside the right-hand corner and to hold the discs well within the rim
+    // they are mounted on, large enough that five of them at the step below do
+    // not touch.
+    readonly property int powerRadius: 168
+    readonly property int powerCentreInset: 40
+
+    // Clearance between the widest point of the selected disc and the edge of
+    // the disk carrying it. Discs sit *on* a rim, so there has to be visible rim
+    // outside them at the one moment a disc is at its largest; without this the
+    // selected one grows out through the edge and stops reading as mounted on
+    // anything.
+    readonly property int powerDiskMargin: 16
+
+    // Five actions and five visible positions, which is the pairing that makes
+    // the wheel endless without ever showing you the same action twice: any run
+    // of five consecutive slots covers all five actions exactly once. Reaching
+    // one further would put a second Shutdown on screen below the first.
+    readonly property real powerStep: 24
+    readonly property int powerReach: 2
+
+    // Out on the rim and at the selection point. A wider spread than the
+    // picker's, because a disc has no detail to lose when it shrinks and the
+    // size is doing all the work of saying which one is chosen.
+    readonly property real powerRimScale: 0.82
+    readonly property real powerFrontScale: 1.3
+
+    // The chosen action, and the ring around it. Shutdown and Reboot take the
+    // urgent colour instead — see PowerMenu.qml.
+    readonly property color powerSelection: withAlpha(menuAccentBase, 0.30)
+    readonly property color powerSelectionEdge: withAlpha(menuAccentBase, 0.65)
+
+    readonly property color powerRest: Qt.rgba(1, 1, 1, 0.08)
+    readonly property color powerRestEdge: Qt.rgba(1, 1, 1, 0.16)
 
     // ─── notifications ───────────────────────────────────────────────
 
