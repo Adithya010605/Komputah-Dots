@@ -157,14 +157,9 @@ ShellRoot {
             border.width: 1
             border.color: Theme.glassBorder
 
-            // The same faint wallpaper wash the panels carry, so the bar and
+            // The same wash and lit edge the panels carry, so the bar and
             // anything dripping out of it are made of one material.
-            Rectangle {
-                anchors.fill: parent
-                radius: parent.radius
-                antialiasing: true
-                color: Theme.glassTint
-            }
+            GlassSheen {}
 
             RowLayout {
                 id: modules

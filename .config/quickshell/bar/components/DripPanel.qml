@@ -205,6 +205,13 @@ Scope {
 
                     // The wallpaper's own colour, sitting in the glass just
                     // strongly enough to belong to the desktop behind it.
+                    //
+                    // The flat wash rather than the lit glass the bar and the
+                    // launcher card are painted with, and deliberately: a
+                    // highlight marks the edge where a pane faces the light, and
+                    // this card's top is not an edge — it is the join with the
+                    // bar. Lighting it would draw a bright seam across the one
+                    // place in the shell that has to read as a single surface.
                     Rectangle {
                         anchors.fill: parent
                         radius: parent.radius

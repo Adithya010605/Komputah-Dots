@@ -79,6 +79,16 @@ Singleton {
     // below the point where it tints text.
     readonly property color glassTint: withAlpha(accentBase, 0.05)
 
+    // The lit top edge every surface carries — see components/GlassSheen.qml.
+    // Neutral white rather than the accent, because a highlight is the light
+    // falling on the glass and not the colour of the glass itself; tinting it
+    // would turn the sheen into a second wash and lose the distinction.
+    readonly property color glassLit: Qt.rgba(1, 1, 1, 0.085)
+
+    // Deep enough to read as a lit edge on a full-height panel, shallow enough
+    // that a 50px bar is not simply pale all over.
+    readonly property int glassSheenDepth: 64
+
     readonly property color pill: Qt.rgba(1, 1, 1, 0.14)
     readonly property color pillBorder: Qt.rgba(1, 1, 1, 0.22)
     readonly property color pillHover: Qt.rgba(1, 1, 1, 0.20)
