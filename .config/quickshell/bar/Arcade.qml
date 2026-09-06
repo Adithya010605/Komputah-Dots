@@ -223,6 +223,95 @@ Singleton {
         ]
     ]
 
+    // ─── the battery ─────────────────────────────────────────────────
+    //
+    // Generated rather than written out, for the reason Pac-Man is: the only
+    // thing that changes between one of these and the next is how many cells of
+    // the can are lit, and twelve hand-drawn variants of the same rectangle
+    // would be twelve chances to get one wall of it wrong.
+    //
+    // Seven rows, which is the height of the type. The can and the number
+    // beside it are the same grid at the same cell size, so the two sit on one
+    // baseline without either being nudged onto it.
+    //
+    //   "#"  the can
+    //   "="  what is left in it
+    //   "*"  the bolt, when it is filling
+    //
+    // Three inks rather than one because the sprite has two things to say at
+    // once — how full, and whether that is going up — and a single-coloured
+    // one can only say the first.
+
+    readonly property int batteryWidth: 15
+    readonly property int batteryHeight: 7
+
+    // Drawn at the size of the inside of the can, so it needs no scaling and no
+    // clipping — it is simply laid over the middle of the charge.
+    readonly property var batteryBolt: [
+        "...##",
+        "..##.",
+        "#####",
+        ".##..",
+        "##..."
+    ]
+
+    function batteryFrame(level: real, charging: bool): var {
+        // The wall at the right-hand end. The terminal stands past it, which is
+        // the one thing that makes this rectangle a battery and not a box.
+        const wall = 12;
+
+        const left = 1;
+        const right = wall - 1;
+        const top = 1;
+        const bottom = root.batteryHeight - 2;
+
+        const cells = right - left + 1;
+        const clamped = Math.max(0, Math.min(1, level));
+
+        // Rounded, then floored at one cell: three per cent of eleven rounds to
+        // nothing, and an empty can standing next to the number 3 reads as a
+        // sprite that has failed rather than as a battery that is nearly flat.
+        const lit = Math.round(clamped * cells);
+        const filled = clamped > 0 ? Math.max(1, lit) : 0;
+
+        // Centred in the can rather than carried on top of the charge, so it
+        // holds still while what is behind it fills up.
+        const boltLeft = left + Math.floor((cells - root.batteryBolt[0].length) / 2);
+        const boltWidth = root.batteryBolt[0].length;
+
+        const rows = [];
+
+        for (let y = 0; y < root.batteryHeight; y++) {
+            let row = "";
+
+            for (let x = 0; x < root.batteryWidth; x++) {
+                if (x >= left && x <= right && y >= top && y <= bottom) {
+                    const bx = x - boltLeft;
+
+                    if (charging && bx >= 0 && bx < boltWidth && root.batteryBolt[y - top].charAt(bx) === "#") {
+                        row += "*";
+                        continue;
+                    }
+
+                    row += (x - left) < filled ? "=" : ".";
+                    continue;
+                }
+
+                // Two long walls, two short ones, and the terminal halfway up
+                // the right-hand end.
+                const ends = x <= wall && (y === 0 || y === root.batteryHeight - 1);
+                const sides = y > 0 && y < root.batteryHeight - 1 && (x === 0 || x === wall);
+                const terminal = x > wall && y >= 2 && y <= root.batteryHeight - 3;
+
+                row += (ends || sides || terminal) ? "#" : ".";
+            }
+
+            rows.push(row);
+        }
+
+        return rows;
+    }
+
     // ─── building it ─────────────────────────────────────────────────
 
     Component.onCompleted: {

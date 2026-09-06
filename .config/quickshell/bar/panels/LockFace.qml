@@ -456,28 +456,62 @@ Item {
         // read rather than looked at, and the middle of the screen is spoken
         // for.
 
-        PixelText {
+        // The can says what the word BAT used to and then some: the level is
+        // the length of the charge in it rather than a number you have to
+        // read, and whether it is going up is the bolt rather than three
+        // letters that change. The number stays, because a battery drawn
+        // eleven cells wide can only ever be approximate and there is one
+        // moment — deciding whether to go and find the cable — where the
+        // difference between 20 and 12 is the whole question.
+        //
+        // No aligning between the two: both are seven rows of the same grid at
+        // the same cell size, so they share a baseline by construction.
+
+        Row {
+            id: power
+
             readonly property var battery: UPower.displayDevice
 
             readonly property int percent: {
-                if (!battery || !battery.isPresent)
+                if (!power.battery || !power.battery.isPresent)
                     return 0;
 
-                const raw = battery.percentage;
+                const raw = power.battery.percentage;
                 return Math.round(raw <= 1 ? raw * 100 : raw);
             }
+
+            readonly property bool charging: power.battery && power.battery.state === UPowerDeviceState.Charging
 
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             anchors.rightMargin: 34
             anchors.bottomMargin: 28
 
-            visible: battery && battery.isPresent
+            visible: power.battery && power.battery.isPresent
 
-            text: (battery && battery.state === UPowerDeviceState.Charging ? "CHG " : "BAT ") + percent + "%"
-            pixel: Theme.lockLivesPixel
-            tracking: 2
-            color: Theme.muted
+            spacing: Theme.lockLivesPixel * 5
+
+            PixelSprite {
+                bitmap: Arcade.batteryFrame(power.percent / 100, power.charging)
+                pixel: Theme.lockLivesPixel
+
+                color: Theme.lockBatteryShell
+
+                // Flat while it is filling, whatever the level: a can with a
+                // bolt in it is not a problem to be reported, and a red one
+                // that is plugged in is a lock screen crying wolf.
+                palette: ({
+                        "=": power.charging || power.percent > Theme.lockBatteryLow ? Theme.lockBatteryFill : Theme.lockBatteryLowFill,
+                        "*": Theme.lockBatteryBolt
+                    })
+            }
+
+            PixelText {
+                text: power.percent + "%"
+                pixel: Theme.lockLivesPixel
+                tracking: 2
+                color: Theme.muted
+            }
         }
     }
 

@@ -631,6 +631,28 @@ Singleton {
     readonly property color ghostEye: Qt.rgba(1, 1, 1, 0.95)
     readonly property color ghostPupil: Qt.rgba(0.08, 0.09, 0.16, 1)
 
+    // ─── the battery in the corner ───────────────────────────────────
+    //
+    // Drawn at the cell size of the lives below the capsule, which is also the
+    // cell size of the number beside it: the can is seven rows tall and so is
+    // the type, so the two line up by being the same grid rather than by being
+    // aligned to each other.
+
+    // The can itself, quiet — it is a frame around the reading and not the
+    // reading. What is in it is lit brighter so the level can be taken at a
+    // glance without counting cells against an outline of the same weight.
+    readonly property color lockBatteryShell: muted
+    readonly property color lockBatteryFill: Qt.rgba(1, 1, 1, 0.78)
+
+    // Below this, what is left in the can turns. The number beside it stays
+    // muted: two things going red at once is an alarm, and this is a lock
+    // screen telling you to find a cable, not a warning light.
+    readonly property int lockBatteryLow: 15
+    readonly property color lockBatteryLowFill: urgent
+
+    // The bolt, in the accent every other active thing in the shell is in.
+    readonly property color lockBatteryBolt: accent
+
     // ─── the arcade's motion ─────────────────────────────────────────
     //
     // Frame counts and beats rather than easing curves, because most of what
