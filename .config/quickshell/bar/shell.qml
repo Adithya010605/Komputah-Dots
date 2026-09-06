@@ -106,6 +106,26 @@ ShellRoot {
         }
     }
 
+    // And the lock screen. One call, and deliberately only one: there is no
+    // `unlock` here, because a lock screen with an IPC call that opens it is a
+    // lock screen anything running as this user can open.
+    //
+    //   quickshell -c bar ipc call lock lock
+    IpcHandler {
+        target: "lock"
+
+        function lock(): void {
+            Lock.lock();
+        }
+
+        // Whether the session is currently locked, so hypr/scripts/lock.sh can
+        // tell an already-locked session from a shell that is not answering and
+        // fall back to hyprlock only in the second case.
+        function status(): string {
+            return Lock.locked ? "locked" : "unlocked";
+        }
+    }
+
     PanelWindow {
         id: bar
 
@@ -261,4 +281,14 @@ ShellRoot {
         id: powerMenu
     }
 
+    // And the last of them, which is not summoned at all — it is asked for by
+    // hypr/scripts/lock.sh, on behalf of the keybind, hypridle's timeout and
+    // logind's before-sleep hook alike.
+    //
+    // In this process for the same reason as the three above, plus one that
+    // only applies to this one: a lock screen that has to start before it can
+    // cover the screen is a lock screen with a gap in front of it, and the gap
+    // is exactly as long as it takes to parse a config and load a wallpaper.
+    // Here, everything it draws with is already warm.
+    LockScreen {}
 }

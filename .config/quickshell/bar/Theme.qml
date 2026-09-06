@@ -466,6 +466,207 @@ Singleton {
         return root.heat((value - cool) / (hot - cool));
     }
 
+    // ─── the lock screen ─────────────────────────────────────────────
+    //
+    // The one surface in the shell that is not sitting on the desktop, and the
+    // only place these numbers are used. Nothing above the compositor is behind
+    // a lock screen, so the frost cannot be borrowed from Hyprland the way every
+    // panel borrows it — the wallpaper is drawn here and blurred here, and these
+    // are the numbers that make what comes out look like the same glass as the
+    // rest of the shell rather than like a photograph with a box on it.
+
+    // Deep. Past the point where the wallpaper is a picture of anything and well
+    // into where it is a field of colour the glass has something to be glass
+    // against — which is the job here. A half-blurred desktop behind a lock
+    // screen is the worst of both: still legible enough to read, not clean
+    // enough to ignore, and it pulls the eye off the one thing on screen that
+    // wants typing into.
+    //
+    // Getting there is not a matter of turning the radius up. MultiEffect
+    // measures its blur in the pixels of the texture it is handed, and it stops
+    // rendering entirely somewhere above blurMax 128 — a black screen, not a
+    // blurrier one — so on a 1920-wide texture the largest radius Qt will
+    // accept is still only a softening, and a mountain comes out the far side
+    // as a mountain. Hyprland gets its own result by blurring four times over
+    // progressively smaller buffers, and this is the same trick in one step:
+    // the picture is drawn into a texture this many pixels wide, blurred there,
+    // where the radius below is a large fraction of the whole frame rather than
+    // three per cent of it, and scaled back up to the display.
+    //
+    // 256 against 64 is what matches the compositor's own blur on the same
+    // wallpaper. Smaller flattens the last of the colour out of it; larger and
+    // the picture starts coming back.
+    readonly property int lockBlurBase: 256
+
+    readonly property real lockBlur: 1.0
+    readonly property int lockBlurMax: 64
+
+    // Blown up a little past the edges of the screen before being clipped back
+    // to them. A blur has nothing outside the texture to sample, so it fades
+    // towards transparent at all four borders; without this the lock screen
+    // wears a dark frame. The overscan puts that fade off the display.
+    readonly property real lockBlurOverscan: 1.12
+
+    // Taken down and cooled, on the same reasoning hyprlock's own background
+    // block was: white pixel text over an undimmed photograph is unreadable on
+    // roughly half of the wallpapers in the folder.
+    //
+    // Both eased off from where they started, because the blur above them was
+    // deepened and the two jobs overlap: detail the blur has already destroyed
+    // does not also need to be darkened, and past a point the pair of them turn
+    // every wallpaper into the same black rectangle. What is left is enough to
+    // hold white text on the bright ones.
+    readonly property real lockDim: -0.18
+    readonly property real lockDesaturate: -0.12
+    readonly property color lockScrim: Qt.rgba(0, 0, 0, 0.22)
+
+    // How the screen arrives and leaves. Slower in than anything else here: it
+    // is the one surface that appears when you are not looking at the machine,
+    // and there is nothing behind it that you are waiting to get back to.
+    readonly property int lockFadeIn: 420
+    readonly property int lockFadeOut: 260
+    readonly property int lockRise: 520
+    readonly property int lockRiseDistance: 22
+
+    // ─── the arcade ──────────────────────────────────────────────────
+
+    // The side of one cell in the 5×7 face and in the sprites. Everything 8-bit
+    // on the screen is a whole multiple of one of these, and nothing is ever
+    // scaled — a grid of squares resampled by 1.4 is a grid of smudges.
+    readonly property int lockClockPixel: 12
+    readonly property int lockDatePixel: 2
+    readonly property int lockCaptionPixel: 2
+    readonly property int lockPacPixel: 2
+    readonly property int lockLivesPixel: 2
+
+    // How many pellets are on the board, and how far apart they sit.
+    //
+    // Six, which is short. A long lane means a password of ordinary length
+    // leaves him stranded in the middle of it with the whole right-hand side
+    // untouched — the bar reads as half-finished rather than as crossed, and it
+    // is the length of the lane saying that, not the password. Six is inside
+    // what almost anything reaches, so he arrives; anything longer goes round
+    // through the tunnel and arrives again.
+    //
+    // He starts *before* the first pellet, so there are seven positions to six
+    // pellets and the sixth character puts him on the last one. Without that
+    // spare slot at the start, a password of exactly six would wrap and leave
+    // the board looking untouched at the moment it was finished.
+    readonly property int lockCapacity: 6
+    readonly property int lockLaneStep: 16
+
+    readonly property int lockPellet: lockPacPixel * 2
+    readonly property int lockPowerPellet: lockPacPixel * 4
+
+    // The bar's own glass, lighter than the shell's.
+    //
+    // Theme.glass is a dark tint that reads as frosted because Hyprland blurs
+    // something bright behind it — the desktop, a page, a terminal. Here what is
+    // behind it is a wallpaper this file has just blurred and dimmed, and a dark
+    // tint on a dark field is a hole rather than a pane. Lit from the front
+    // instead, it is the same material seen in different light.
+    readonly property color lockGlass: Qt.rgba(1, 1, 1, 0.10)
+    readonly property color lockGlassBorder: Qt.rgba(1, 1, 1, 0.22)
+
+    readonly property int lockLanePadH: 14
+    readonly property int lockLanePadV: 9
+
+    // The lane is a sprite's width plus one step per pellet: he has to fit at
+    // both ends of it, and half of him hangs off either side of the position he
+    // is standing on.
+    readonly property int lockLaneWidth: 13 * lockPacPixel + lockCapacity * lockLaneStep
+
+    // Which comes out at roughly 150×44: a small capsule, deliberately, and
+    // sized against the password field on a macOS lock screen rather than
+    // against the space available. A lock screen has one input on it and the
+    // whole display to put it on, and the temptation is to make the one thing
+    // that matters big — but a wide bar low on an empty screen reads as a piece
+    // of furniture, and what is wanted is a thing you type into and then stop
+    // looking at. The clock is the object on this screen. This is the slot.
+    //
+    // Taken down from 180×48 by closing the pellet spacing and the padding
+    // rather than by scaling the sprite: the lane is what makes the capsule
+    // wide, and 16 is as tight as the step goes before an uneaten pellet ends
+    // up underneath him. Everything inside stays drawn at the same pixel size,
+    // so it reads as the same object with less air in it.
+    readonly property int lockCardWidth: lockLaneWidth + lockLanePadH * 2
+    readonly property int lockCardHeight: 13 * lockPacPixel + lockLanePadV * 2
+
+    // Where it sits, which is at the bottom rather than under the clock. A lock
+    // screen is a clock you look at and a box you type into, and stacking the
+    // two in the middle makes one object out of two jobs. Apart, the clock owns
+    // the screen and the bar owns the edge you are already looking at when you
+    // sit down — which is also where hyprlock's input field was.
+    //
+    // Low, and lower than it was. The whole block — capsule, caption, lives —
+    // is anchored by its bottom edge, so this is the only number that decides
+    // how far down the screen it all sits, and near the edge is where the eye
+    // that has just found the clock goes looking for it.
+    readonly property int lockBottomMargin: 40
+
+    // The clock, lifted off centre by about the height of what is now at the
+    // bottom, so the two read as balanced rather than as one thing centred and
+    // another thing left over. Eased back as the block below it shrank: the
+    // lift is meant to be about half of what is down there, and half of a
+    // smaller thing is a smaller lift.
+    readonly property int lockClockOffset: -54
+
+    // Him. The accent, like every other active thing in the shell, rather than
+    // arcade yellow — a fixed yellow would be the one element on screen that did
+    // not come from the wallpaper, and it would read as a sticker rather than as
+    // part of the surface it is on. Arcade yellow is one line, if it is ever
+    // wanted: "#ffd400".
+    readonly property color pacSelf: accent
+
+    // Neutral, so the only coloured thing moving along the row is him. The big
+    // ones are brighter and larger rather than a second colour, which is the
+    // distinction the board itself made.
+    readonly property color pacPellet: Qt.rgba(1, 1, 1, 0.55)
+    readonly property color pacPower: Qt.rgba(1, 1, 1, 0.90)
+
+    // It. The shell's urgent red — the same colour every other failure in the
+    // shell is reported in, which is what stops the ghost being a joke that has
+    // to be learnt separately from the thing it means.
+    readonly property color ghostBody: urgent
+    readonly property color ghostEye: Qt.rgba(1, 1, 1, 0.95)
+    readonly property color ghostPupil: Qt.rgba(0.08, 0.09, 0.16, 1)
+
+    // ─── the arcade's motion ─────────────────────────────────────────
+    //
+    // Frame counts and beats rather than easing curves, because most of what
+    // moves here is a sprite and a sprite does not ease. The two numbers that
+    // are eased — the step along the lane and the dash off the end of it — are
+    // the two places something is travelling rather than animating in place.
+
+    // One frame of the jaw. Six frames to the chomp, so this is a chomp about
+    // every six hundred milliseconds, which is the rate the board ran it at.
+    readonly property int lockChompInterval: 100
+
+    // One pellet's worth of travel. Short, because it runs on every keystroke
+    // and has to be finished before the next one lands at typing speed.
+    readonly property int lockStepDuration: 120
+    readonly property int lockPelletFade: 160
+    readonly property int lockPowerPulse: 700
+
+    // Being caught, in order: the rush in, the death, and how long the ghost
+    // takes to go out as the death starts — it does not walk off, it stops being
+    // there, which is what the board did with them for the death too.
+    readonly property int lockGhostRush: 460
+
+    // The beat it stands beside him before he goes. Short, and the whole reason
+    // the ghost is worth drawing: without it the rush and the death run into
+    // each other and the thing that caught him is off screen before it has been
+    // seen catching him.
+    readonly property int lockGhostHold: 220
+
+    readonly property int lockDeathDuration: 700
+    readonly property int lockGhostLeave: 320
+
+    // Getting out. Quicker than being caught, and the last thing that happens
+    // before the session is handed back.
+    readonly property int lockWinDash: 460
+    readonly property int lockReleaseDelay: 260
+
     // ─── motion ──────────────────────────────────────────────────────
 
     readonly property int hoverDuration: 140

@@ -234,14 +234,27 @@ hl.bind(mainMod .. " + G", hl.dsp.exec_cmd("~/.config/hypr/scripts/focus-mode.sh
 hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exec_cmd("~/.config/hypr/scripts/reading_mode.sh"))
 
 -- Session management
--- The shared lock path rather than a bare hyprlock: it refuses to stack a
--- second lock client, which the old binding would happily do on a double press.
-hl.bind(mod .. " + L", hl.dsp.exec_cmd("~/.config/hypr/scripts/lock.sh"))
-
--- The way out when the lock screen is up but dead. Works while locked, and
--- with allow_session_lock_restore it hands the existing lock to a fresh
--- hyprlock instead of leaving a TTY as the only option.
+-- Locking, suspending, logging out, rebooting and shutting down are all in the
+-- power wheel now, and nowhere else. The chords that used to duplicate them are
+-- gone deliberately: one way out of a session beats five that half-overlap.
+--
+-- The two exceptions below are the way out when the lock screen is up but dead,
+-- which the wheel cannot be: you cannot reach a bar you cannot see. Both work
+-- while locked.
+--
+-- The first is the ordinary lock, and it rescues the ordinary failure on its
+-- own: if the shell holding the lock has died, the status call in lock.sh gets
+-- no answer and the script falls through to hyprlock, which attaches to the
+-- lock already on the session rather than making a second one.
+--
+-- The second is for the case the first cannot see — a shell that is still
+-- running and still says it holds the lock, but is not drawing anything worth
+-- typing into. It takes the shell down and hands hyprlock the session, still
+-- locked the whole way through. It is here because the lock screen is now
+-- quickshell's rather than hyprlock's, and a lock screen that is new deserves a
+-- way out that does not start with a TTY.
 hl.bind(mod .. " + SHIFT + L", hl.dsp.exec_cmd("~/.config/hypr/scripts/lock.sh"), { locked = true })
+hl.bind(mod .. " + SHIFT + ALT + L", hl.dsp.exec_cmd("~/.config/hypr/scripts/lock.sh --rescue"), { locked = true })
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("~/.config/hypr/scripts/night-light-toggle.sh"))
 hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd("~/.config/hypr/scripts/no-sleep-toggle.sh"))
 -- The power wheel, in the quickshell process that is already running. Same
