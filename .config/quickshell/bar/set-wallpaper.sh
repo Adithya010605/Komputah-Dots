@@ -31,15 +31,22 @@ if [ ! -f "$wallpaper" ]; then
     exit 1
 fi
 
-# Rewrite the first `path =` in a Hyprland-style config, in place.
-persist() {
-    local conf=$1 path=$2 tmp
+# Rewrite the first line assigning to `key` in a config, in place. Handles both
+# the Hyprland form (`path = /x`) and the JSON one (`"wallpaper": "/x",`), since
+# the only difference is how the value is quoted.
+rewrite_field() {
+    local conf=$1 key=$2 value=$3 tmp
 
     [ -f "$conf" ] || return 0
 
     tmp=$(mktemp)
-    awk -v path="$path" '
-        !done && /^[[:space:]]*path[[:space:]]*=/ { print "    path = " path; done = 1; next }
+    awk -v key="$key" -v value="$value" '
+        !done && index($0, key) && $0 ~ "^[[:space:]]*" key "[[:space:]]*[=:]" {
+            done = 1
+            if (key ~ /^"/) print "    " key ": \"" value "\","
+            else print "    " key " = " value
+            next
+        }
         { print }
     ' "$conf" >"$tmp"
 
@@ -58,12 +65,46 @@ while read -r monitor; do
     hyprctl hyprpaper wallpaper "$monitor,$wallpaper" >/dev/null
 done < <(hyprctl monitors | awk '/^Monitor /{print $2}')
 
+# pywal's only working backend here is ImageMagick's quantiser, and it gives up
+# on an image that does not hold sixteen distinguishable colours — a near-black
+# wallpaper walks it up to a 34-colour palette and then exits 1. Such an image
+# is still perfectly good on the desktop, so rather than refuse it, theme from a
+# contrast-stretched copy. Only the palette comes from the copy; hyprpaper is
+# already showing the original.
+#
 # -n: hyprpaper owns the desktop, pywal owns only the palette.
-wal -i "$wallpaper" -n -q
+theme() {
+    local image=$1 stretched status
+
+    if wal -i "$image" -n -q 2>/dev/null; then
+        return 0
+    fi
+
+    stretched=$(mktemp --suffix=.png)
+    status=1
+
+    if magick "$image" -auto-level -normalize "$stretched" 2>/dev/null &&
+        wal -i "$stretched" -n -q 2>/dev/null; then
+        # pywal records the file it read, and the picker reads that record back
+        # to mark the live thumbnail. Point it at the wallpaper that was chosen
+        # rather than at the scratch copy, which is gone a line later.
+        printf '%s' "$image" >"$HOME/.cache/wal/wal"
+        rewrite_field "$HOME/.cache/wal/colors.json" '"wallpaper"' "$image"
+        status=0
+    fi
+
+    rm -f "$stretched"
+    return "$status"
+}
+
+if ! theme "$wallpaper"; then
+    echo "no palette could be built from ${wallpaper##*/}" >&2
+    exit 1
+fi
 
 # Waybar reads the same generated palette but has to be told to re-read it.
 # Absent most of the time, and its absence is not a failure.
 pkill -SIGUSR2 -x waybar 2>/dev/null || true
 
-persist "$hyprpaper_conf" "$wallpaper"
-persist "$hyprlock_conf" "$wallpaper"
+rewrite_field "$hyprpaper_conf" path "$wallpaper"
+rewrite_field "$hyprlock_conf" path "$wallpaper"

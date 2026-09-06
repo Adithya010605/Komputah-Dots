@@ -114,20 +114,38 @@ Singleton {
     Process {
         id: swap
 
+        // Held until the exit code says whether it mattered. A clean run is
+        // not necessarily a silent one: pywal shells out to ImageMagick, which
+        // warns that `magick convert` is deprecated on every single call and
+        // then exits 0 anyway. Reading stderr on its own as failure put that
+        // warning in the panel, in red, under a wallpaper that was already on
+        // the desktop.
+        property string diagnostics: ""
+
         stderr: StdioCollector {
             waitForEnd: true
-            onStreamFinished: {
-                const message = text.trim();
-                if (message.length > 0)
-                    root.error = message.split("\n").pop();
-            }
+            onStreamFinished: swap.diagnostics = text.trim()
         }
 
         onExited: code => {
             root.applying = false;
 
-            if (code !== 0 && root.error.length === 0)
-                root.error = "Could not set that wallpaper";
+            if (code !== 0)
+                root.error = swap.reason();
+
+            swap.diagnostics = "";
+        }
+
+        // The last stderr line is not reliably the reason the run failed. The
+        // deprecation warning above is emitted once per ImageMagick call, so it
+        // lands *after* whatever actually went wrong and reads as the cause —
+        // which is how "convert is deprecated in IMv7" ended up presented as
+        // the reason a wallpaper could not be set. Take the last line that is
+        // not one of those, and fall back to a plain sentence.
+        function reason(): string {
+            const lines = swap.diagnostics.split("\n").map(line => line.trim()).filter(line => line.length > 0 && !line.startsWith("WARNING:"));
+
+            return lines.length > 0 ? lines[lines.length - 1] : "Could not set that wallpaper";
         }
     }
 }
