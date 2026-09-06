@@ -91,18 +91,30 @@ Scope {
     // which spreads the wallpapers so far apart they stop reading as one
     // wheel. A small disk curls them back in around the selection point and
     // keeps the whole thing clear of the screen edges.
-    readonly property int radius: 300
+    readonly property int radius: 330
     readonly property int centreInset: 40
 
     // Degrees between one wallpaper and the next, and how many of them are on
-    // screen either side of the choice. One setting, not two: on a disk this
-    // size the run of cards has to stay inside about 70° of the selection
-    // point or the far ones swing round behind the right edge, so reaching six
-    // deep means the step has to come down to fit them in that angle. It lands
-    // the outermost card at 66°, well inside the edge, and packs the near ones
-    // into a denser stack — which is the point of reaching further.
-    readonly property real step: 11
-    readonly property int reach: 6
+    // screen either side of the choice.
+    //
+    // These two trade against each other and the trade is the whole design of
+    // the arc, because the run of cards has to stay inside about 70° of the
+    // selection point — past that the far ones swing round behind the right edge
+    // of the screen. So the angle is a fixed budget, and the only question is
+    // whether to spend it on more wallpapers or on more of each wallpaper.
+    //
+    // It used to buy more wallpapers: six deep at 11° apart. That put 57px
+    // between one card and the next with 134px of card to show, so every one
+    // behind the selection was three-fifths buried under its neighbour and the
+    // rim read as a stack of slivers rather than as pictures you could judge.
+    //
+    // Four deep at 17° spends 68° — the whole budget, near enough — on nine
+    // cards instead of thirteen, and gives each of them 98px of the 146 it has
+    // to show. Two thirds of every wallpaper on the rim is visible where it used
+    // to be two fifths, the point of a wallpaper picker being that you can see
+    // the wallpapers.
+    readonly property real step: 17
+    readonly property int reach: 4
 
     // Which way a card tilts as it travels round the rim. Mounted radially, so
     // a card below the selection point leans the way the disk is turning.
@@ -112,8 +124,15 @@ Scope {
     // rather than written into the scale curve because the reveal has to start
     // on exactly the frame the chosen card is occupying, and a card that grew
     // out of a slightly wrong rectangle would jump on the first frame.
-    readonly property real rimScale: 0.92
-    readonly property real frontScale: 1.12
+    //
+    // The rim comes up to full size: the cards behind the selection are not
+    // context, they are the other wallpapers, and shrinking them was costing
+    // width the arc no longer needs to save. The selection keeps a little more
+    // size than they have, but it is no longer carrying the job of showing which
+    // card is chosen on its own — the accent ring below does that now, and does
+    // it better than a 20% difference in scale ever did.
+    readonly property real rimScale: 1.0
+    readonly property real frontScale: 1.18
     readonly property real cardRadius: 18
 
     // How far the wheel has turned, in degrees. This is the one animated value
@@ -894,14 +913,24 @@ Scope {
             antialiasing: true
             color: "transparent"
 
-            border.width: card.front ? 2 : 1
-            border.color: {
-                if (card.front && card.live)
-                    return Theme.accent;
-                if (card.front)
-                    return Qt.rgba(1, 1, 1, 0.75);
-                return Theme.glassBorder;
-            }
+            // The selected card is ringed in the accent, and in the accent
+            // whether or not it happens to be the one already on the desktop.
+            //
+            // It used to go accent only when selected *and* live, and plain
+            // white the rest of the time — which meant the ring was answering
+            // "is this your wallpaper" when the only question you are asking
+            // while turning the wheel is "which one am I about to choose". Being
+            // live is a separate fact and it has the badge below to say so.
+            //
+            // On the menu accent rather than the shell's, which is what ties
+            // this to the launcher and the power wheel: the three surfaces that
+            // are summoned, cover the screen, and belong to no bar. It also
+            // sidesteps something the shell accent could never do here — the
+            // shell accent is derived from the current wallpaper, so on the
+            // picker it would be the one colour in the room that changes
+            // meaning the instant you choose anything.
+            border.width: card.front ? 3 : 1
+            border.color: card.front ? Theme.menuAccent : Theme.glassBorder
 
             Behavior on border.color {
                 ColorAnimation {
@@ -935,7 +964,11 @@ Scope {
             height: 22
             radius: 999
             antialiasing: true
-            color: Theme.accent
+
+            // The same accent as the ring, so the two marks on a card that is
+            // both selected and live read as one piece of chrome rather than as
+            // two colours disagreeing across the same rectangle.
+            color: Theme.menuAccent
 
             opacity: card.live ? 1 : 0
             scale: card.live ? 1 : 0.4
