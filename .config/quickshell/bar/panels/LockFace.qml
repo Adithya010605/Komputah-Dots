@@ -480,7 +480,21 @@ Item {
                 return Math.round(raw <= 1 ? raw * 100 : raw);
             }
 
-            readonly property bool charging: power.battery && power.battery.state === UPowerDeviceState.Charging
+            // On mains, which is not the same question as charging, and is
+            // the one the bolt is answering. A battery that has finished
+            // filling reports FullyCharged rather than Charging, and one being
+            // held at a charge limit reports PendingCharge. On a laptop that
+            // spends its life on a desk those two are most of the time it is
+            // plugged in at all, so a bolt lit only by Charging is a bolt that
+            // is out almost every time you look at the screen.
+            readonly property bool powered: {
+                if (!power.battery)
+                    return false;
+
+                const state = power.battery.state;
+
+                return state === UPowerDeviceState.Charging || state === UPowerDeviceState.FullyCharged || state === UPowerDeviceState.PendingCharge;
+            }
 
             anchors.right: parent.right
             anchors.bottom: parent.bottom
@@ -492,16 +506,16 @@ Item {
             spacing: Theme.lockLivesPixel * 5
 
             PixelSprite {
-                bitmap: Arcade.batteryFrame(power.percent / 100, power.charging)
+                bitmap: Arcade.batteryFrame(power.percent / 100, power.powered)
                 pixel: Theme.lockLivesPixel
 
                 color: Theme.lockBatteryShell
 
-                // Flat while it is filling, whatever the level: a can with a
-                // bolt in it is not a problem to be reported, and a red one
+                // Flat while it is on mains, whatever the level: a can with
+                // a bolt in it is not a problem to be reported, and a red one
                 // that is plugged in is a lock screen crying wolf.
                 palette: ({
-                        "=": power.charging || power.percent > Theme.lockBatteryLow ? Theme.lockBatteryFill : Theme.lockBatteryLowFill,
+                        "=": power.powered || power.percent > Theme.lockBatteryLow ? Theme.lockBatteryFill : Theme.lockBatteryLowFill,
                         "*": Theme.lockBatteryBolt
                     })
             }

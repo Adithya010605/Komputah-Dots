@@ -82,9 +82,10 @@ Scope {
     // ─── click-outside catcher ───────────────────────────────────────
     //
     // Its own namespace so no blur rule applies to the transparent sheet.
-    // Anchored to the top, which layershell places below the bar's exclusive
-    // zone — so the bar itself stays clickable and clicking another module
-    // moves the drip straight there instead of merely dismissing this one.
+    // Held clear of the bar by the bar's own height — so the bar itself stays
+    // clickable and clicking another module moves the drip straight there
+    // instead of merely dismissing this one. That used to fall out of the bar's
+    // exclusive zone; the bar reserves nothing now, so it is stated here.
 
     PanelWindow {
         visible: drip.rendered && drip.catchesClicks
@@ -100,6 +101,8 @@ Scope {
             right: true
             bottom: true
         }
+
+        margins.top: Theme.barDrop
 
         MouseArea {
             anchors.fill: parent
@@ -133,6 +136,11 @@ Scope {
             // to keep its top edge under the bar. The attachment to the bar is
             // never given up — only the perfect centring is.
             left: PanelState.anchoredLeft(drip.anchorX, popup.implicitWidth, popup.screen ? popup.screen.width : 1920)
+
+            // Down to the bar's underside, which is where it is when a panel is
+            // open — and it always is, because an open panel is one of the
+            // things holding it there.
+            top: Theme.barDrop
         }
 
         Item {

@@ -21,7 +21,19 @@ BarPill {
         return Math.round(raw <= 1 ? raw * 100 : raw);
     }
 
-    readonly property bool charging: pill.battery && pill.battery.state === UPowerDeviceState.Charging
+    // On mains rather than strictly filling. A finished battery reports
+    // FullyCharged and one held at a charge limit reports PendingCharge, and
+    // testing only for Charging puts the ramp glyph back on a laptop that has
+    // been plugged in all afternoon — which then disagrees with the wall socket
+    // and with the lock screen, where the same question is asked the same way.
+    readonly property bool charging: {
+        if (!pill.battery)
+            return false;
+
+        const state = pill.battery.state;
+
+        return state === UPowerDeviceState.Charging || state === UPowerDeviceState.FullyCharged || state === UPowerDeviceState.PendingCharge;
+    }
 
     interactive: false
     visible: pill.battery && pill.battery.isPresent

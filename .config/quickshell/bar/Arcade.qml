@@ -236,7 +236,7 @@ Singleton {
     //
     //   "#"  the can
     //   "="  what is left in it
-    //   "*"  the bolt, when it is filling
+    //   "*"  the bolt, when it is on mains
     //
     // Three inks rather than one because the sprite has two things to say at
     // once — how full, and whether that is going up — and a single-coloured
@@ -255,7 +255,7 @@ Singleton {
         "##..."
     ]
 
-    function batteryFrame(level: real, charging: bool): var {
+    function batteryFrame(level: real, powered: bool): var {
         // The wall at the right-hand end. The terminal stands past it, which is
         // the one thing that makes this rectangle a battery and not a box.
         const wall = 12;
@@ -288,8 +288,16 @@ Singleton {
                 if (x >= left && x <= right && y >= top && y <= bottom) {
                     const bx = x - boltLeft;
 
-                    if (charging && bx >= 0 && bx < boltWidth && root.batteryBolt[y - top].charAt(bx) === "#") {
-                        row += "*";
+                    if (powered && bx >= 0 && bx < boltWidth && root.batteryBolt[y - top].charAt(bx) === "#") {
+                        // Cut out of the charge where there is charge behind
+                        // it, and lit where there is not. A bolt drawn in one
+                        // colour over both is a bolt that vanishes into
+                        // whichever of the two the palette happens to put it
+                        // near — and the palette comes out of the wallpaper, so
+                        // that is not a thing this can be allowed to depend on.
+                        // Inverted, it is legible against anything, because
+                        // what it is legible against is itself.
+                        row += (x - left) < filled ? "." : "*";
                         continue;
                     }
 

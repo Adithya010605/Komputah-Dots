@@ -132,7 +132,6 @@ Singleton {
 
     // ─── bar geometry ────────────────────────────────────────────────
 
-    readonly property int barMarginTop: 9
     // A ceiling rather than a size: the bar hugs its modules and only stops
     // growing here. It used to be pinned at this width, which left a long
     // stretch of empty glass past the window name and past the gear.
@@ -148,7 +147,59 @@ Singleton {
     readonly property int modulePadH: 12
 
     readonly property int barHeight: moduleHeight + barPadding * 2
-    readonly property int barExclusive: barMarginTop + barHeight
+
+    // The bar is pinned to the top edge of the display rather than floating a
+    // margin below it, so it reads as hanging off the edge of the screen — the
+    // same thing every panel does to the bar, one level up. Only the two
+    // free-hanging bottom corners are rounded; the top pair are square, because
+    // there is nothing above them to be round against and a curve there would
+    // put a sliver of desktop between the bar and the edge it is attached to.
+    //
+    // Half the height, which is exactly what the ends of the old floating pill
+    // were: the same capsule, with its top half absorbed into the screen edge.
+    readonly property int barBottomRadius: barHeight / 2
+
+    // ─── the bar's own drip ──────────────────────────────────────────
+    //
+    // The bar reserves nothing at all. It hangs over whatever is underneath
+    // instead of pushing the desktop down by its own height for the whole
+    // session, and pulls itself up into the screen edge when it is not being
+    // used — a full-width strip of reserved space for a bar that only spans the
+    // middle third of the display was most of a wasted row either side of it.
+    //
+    // This much glass stays showing at rest: enough to see where the bar went
+    // and to put a pointer on, not enough to read anything off.
+    readonly property int barPeek: 5
+
+    // And it is the only thing the bar reserves. Not nothing: a window allowed
+    // right up to the top of the display runs underneath the sliver, and what
+    // goes under it is the window's own top border and rounded corners — so a
+    // floated or maximised window comes out looking as though its frame had
+    // been cut off, which is exactly what has happened to it.
+    //
+    // Reserving the sliver and no more puts every window's border back in view
+    // while still handing back the other 45px, which was the whole point.
+    // The bar over its own sliver is still overlay: it is only ever that far
+    // down when it has been asked for.
+    readonly property int barExclusive: barPeek
+
+    // How much further a panel has to be pushed to reach the bar's underside.
+    // Layershell already drops it by the line above — a surface with no
+    // exclusive zone of its own is placed below everyone else's — so this is
+    // the rest of the way and not the whole of it.
+    readonly property int barDrop: barHeight - barExclusive
+
+    // It comes down and goes back up on the panels' own numbers, because it is
+    // the same motion one level up — the bar drips out of the edge of the
+    // screen exactly as a panel drips out of the bar.
+    readonly property int barRevealDuration: dripOpenDuration
+    readonly property int barRetractDuration: dripCloseDuration
+
+    // The beat it waits before going back up. Without it, clipping the pointer
+    // off the bottom edge on the way to a module sends the whole bar home
+    // mid-reach, and a panel closing under a pointer that is no longer on the
+    // bar snatches the bar away in the same motion.
+    readonly property int barRetractDelay: 240
 
     // Waybar pins these two to a character count; a fixed pixel width is the
     // same idea and stops the centre of the bar shifting on every title change.
@@ -650,8 +701,14 @@ Singleton {
     readonly property int lockBatteryLow: 15
     readonly property color lockBatteryLowFill: urgent
 
-    // The bolt, in the accent every other active thing in the shell is in.
-    readonly property color lockBatteryBolt: accent
+    // The bolt, in the same white the charge is — not in the accent, which is
+    // the one place on this screen where the shell's usual rule has to give
+    // way. The accent comes out of the wallpaper and can land anywhere,
+    // including on a teal that disappears into the dark half of the can; the
+    // bolt is inverted against whatever is behind it (see Arcade.batteryFrame)
+    // and that only works if the two colours it alternates between are the two
+    // colours it is alternating against.
+    readonly property color lockBatteryBolt: lockBatteryFill
 
     // ─── the arcade's motion ─────────────────────────────────────────
     //

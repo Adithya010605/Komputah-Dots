@@ -36,6 +36,16 @@ Rectangle {
     radius: parent.radius
     antialiasing: true
 
+    // Each corner separately as well as the shared radius, because not every
+    // surface in the shell is rounded the same way on all four — the bar is
+    // square where it meets the top of the screen. These default to -1, which
+    // Rectangle reads as "use radius", so a surface with one uniform radius is
+    // unaffected by them being here.
+    topLeftRadius: parent.topLeftRadius
+    topRightRadius: parent.topRightRadius
+    bottomLeftRadius: parent.bottomLeftRadius
+    bottomRightRadius: parent.bottomRightRadius
+
     // Held just short of 1 so the two stops below it can never collide with the
     // one at the bottom, which happens on any surface shallower than the depth —
     // the bar being the obvious one.

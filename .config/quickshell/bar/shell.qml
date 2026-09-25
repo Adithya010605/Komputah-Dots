@@ -142,21 +142,90 @@ ShellRoot {
 
         // The window spans the full width even though the bar does not, which
         // is what lets a module report its position in plain screen pixels.
-        implicitHeight: Theme.barExclusive
+        // Taller than the bar itself by the slack the spring at the end of the
+        // drop needs, so the stretch is not clipped off by the layer surface.
+        implicitHeight: Theme.barHeight + Theme.overshootRoom
+
+        // Only the sliver reserved — see Theme.barExclusive. The bar hangs over
+        // what is underneath and gets out of the way, rather than pushing every
+        // window on the display down by its own height for the whole session;
+        // what it does keep is the few pixels it is still showing, so nothing
+        // ends up with its own border tucked underneath the glass.
         exclusiveZone: Theme.barExclusive
+
+        // What the compositor is allowed to send a pointer to: exactly the
+        // glass that is currently on screen, and nothing else. Without this the
+        // window would swallow every click in a full-width strip across the top
+        // of the display — including the long runs of empty desktop either side
+        // of the bar, which is most of that strip.
+        mask: Region {
+            x: Math.round(surface.x)
+            y: 0
+            width: Math.round(surface.width)
+            height: Math.round(surface.height)
+        }
+
+        // Whether the bar is down.
+        //
+        // Hover brings it down. An open panel holds it there, because a panel
+        // hangs off the bar's underside and cannot be left attached to an edge
+        // that has gone home — and so does a toast, which arrives without
+        // anyone asking for it and would otherwise hang from nothing.
+        readonly property bool wanted: reach.hovered || PanelState.openPanel.length > 0 || Notices.popups.length > 0
+
+        readonly property bool down: bar.wanted || grace.running
+
+        onWantedChanged: {
+            if (bar.wanted)
+                grace.stop();
+            else
+                grace.restart();
+        }
+
+        Timer {
+            id: grace
+
+            interval: Theme.barRetractDelay
+            repeat: false
+        }
 
         Rectangle {
             id: surface
 
+            // Flush with the top of the display: the bar hangs off the screen
+            // edge rather than floating in front of the desktop.
             anchors.horizontalCenter: parent.horizontalCenter
-            y: Theme.barMarginTop
+            anchors.top: parent.top
 
             // The bar is exactly as wide as what is on it, capped by the
             // configured ceiling and by the screen. It used to be pinned at the
             // ceiling, which left a long run of empty glass past the window
             // name on one side and past the gear on the other.
             width: Math.min(Theme.barWidth, parent.width - Theme.edgeMargin * 2, modules.implicitWidth + Theme.barPadEnds * 2)
-            height: Theme.barHeight
+
+            // How far the bar has come out of the screen edge — which is its
+            // height, because the top edge never moves. It is welded to the top
+            // of the display, so the drop is the glass growing downward out of
+            // that edge rather than the bar sliding down from somewhere above
+            // it, and the spring at the end is a stretch rather than a jump
+            // away from the thing it is attached to. Exactly what every panel
+            // does to the bar, one level up.
+            height: bar.down ? Theme.barHeight : Theme.barPeek
+
+            Behavior on height {
+                NumberAnimation {
+                    duration: bar.down ? Theme.barRevealDuration : Theme.barRetractDuration
+                    easing.type: bar.down ? Easing.OutBack : Easing.InCubic
+                    easing.overshoot: Theme.dripOvershoot
+                }
+            }
+
+            // The modules are pinned where they sit on the full-height bar and
+            // clipped away until the glass has come down far enough to show
+            // them — they are revealed by the bar arriving, not carried down by
+            // it. Centring them in a surface whose height is being animated
+            // would slide and squash the whole row on every reveal.
+            clip: true
 
             // Modules come and go — the battery when it is unplugged, the count
             // beside the bell — and the glass should stretch to them rather
@@ -166,6 +235,15 @@ ShellRoot {
                     duration: 260
                     easing.type: Easing.OutCubic
                 }
+            }
+
+            // The whole bar is its own hover target, so the pointer landing
+            // anywhere on the sliver brings it down and it stays down for as
+            // long as the pointer is on it. A HoverHandler rather than a
+            // MouseArea because it is sitting over every module on the bar and
+            // must not take a single click off any of them.
+            HoverHandler {
+                id: reach
             }
 
             // The bar no longer spans the display, so panels have to be told
@@ -186,10 +264,14 @@ ShellRoot {
             Binding {
                 target: PanelState
                 property: "barInset"
-                value: surface.height / 2
+                value: Theme.barBottomRadius
             }
 
-            radius: 999
+            // Square where it meets the top of the screen, round on the two
+            // edges that are left hanging.
+            radius: Theme.barBottomRadius
+            topLeftRadius: 0
+            topRightRadius: 0
             antialiasing: true
 
             color: Theme.glass
@@ -203,8 +285,27 @@ ShellRoot {
             RowLayout {
                 id: modules
 
-                anchors.centerIn: parent
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                // Against the bar's full height rather than its current one, so
+                // the row holds one position on screen while the glass moves
+                // past it.
+                y: (Theme.barHeight - modules.implicitHeight) / 2
+
                 spacing: Theme.moduleSpacing
+
+                // Faded with the drop as well as clipped by it. The clip alone
+                // wipes the row into view a slice at a time, which on a line of
+                // text reads as the letters being cut in half rather than as the
+                // bar arriving.
+                opacity: bar.down ? 1 : 0
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: bar.down ? Theme.fadeInDuration : Theme.fadeOutDuration
+                        easing.type: Easing.OutCubic
+                    }
+                }
 
                 WindowModule {}
 

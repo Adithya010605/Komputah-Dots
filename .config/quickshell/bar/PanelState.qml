@@ -23,8 +23,8 @@ Singleton {
     property real barLeft: 0
     property real barRight: 1920
 
-    // The bar's ends are round, so the last half-height of it has no flat
-    // underside for a panel to hang from.
+    // The bar's bottom corners are round, so the last radius of it at either
+    // end has no flat underside for a panel to hang from.
     property real barInset: 25
 
     // Where a panel of this width should sit so its top edge stays under the
