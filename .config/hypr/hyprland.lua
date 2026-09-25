@@ -69,7 +69,14 @@ hl.config({
         gaps_in  = 2,
         gaps_out = 10,
 
-        border_size = 3,
+        -- gaps_out is tiled-only, so without this a floated window sits flush
+        -- against whichever monitor edge it happens to reach — one side hard up
+        -- against the screen while the other shows its border and a strip of
+        -- whatever is behind it. Matched to gaps_out so a window keeps the same
+        -- margin whether it is tiled or floating.
+        float_gaps = 10,
+
+        border_size = 1,
 
         col = {
             active_border   = "rgba(a8a8a8dd)",
@@ -82,8 +89,8 @@ hl.config({
     },
 
     decoration = {
-        rounding       = 4,
-        rounding_power = 2,
+        rounding       = 12,
+        rounding_power = 3,
 
         active_opacity   = 1.0,
         inactive_opacity = 1.0,
@@ -196,9 +203,24 @@ local mod     = "SUPER"
 
 -- Window management
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
-hl.bind(mainMod .. " + T", hl.dsp.window.float({ action = "toggle" }))
+-- Fills the screen, rather than floating. Mode 1 is maximise: the window takes
+-- the whole usable area but keeps its gaps, its border and its rounded corners,
+-- and stays clear of what the bar reserves. Mode 0 — the one on SHIFT+F — is
+-- true fullscreen, which throws all of that away and covers the display.
+hl.bind(mainMod .. " + T", hl.dsp.window.fullscreen({ mode = 1 }))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ mode = 1 }))
 hl.bind(mainMod .. " + SHIFT + F", hl.dsp.window.fullscreen({ mode = 0 }))
+
+-- Floating kept on a chord of its own, since T is now the one that fills the
+-- screen. Centred on the way out, rather than left wherever the tile it was
+-- just occupying happened to be — which is what put a floated window hard
+-- against one edge of the display with a gap down the other side.
+-- centerwindow does nothing to a tiled window, so the same key still just
+-- re-tiles on the way back.
+hl.bind(mainMod .. " + SHIFT + T", function()
+    hl.dispatch(hl.dsp.window.float({ action = "toggle" }))
+    hl.dispatch(hl.dsp.window.center())
+end)
 
 -- Screenshots & tools
 hl.bind("Print", hl.dsp.exec_cmd("hyprshot -m output -m eDP-1 --clipboard-only"))
