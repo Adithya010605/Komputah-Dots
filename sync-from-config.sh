@@ -16,6 +16,11 @@ SOURCE_HOME="${SOURCE_HOME:-$HOME}"
 # Everything under ~/.config that the installer puts back.
 CONFIG_DIRS=(hypr kitty mako nvim quickshell rofi waybar)
 
+# The wallpapers, kept under walls/ in the repo. The palette the whole shell
+# themes from comes out of whichever one is set, so a machine without them is
+# not the same desktop.
+WALL_DIR="${WALL_DIR:-$SOURCE_HOME/walls}"
+
 # Dotfiles from $HOME itself, kept under home/ in the repo.
 HOME_FILES=(.zshrc .p10k.zsh)
 
@@ -88,6 +93,16 @@ mkdir -p "$ROOT/.config" "$ROOT/home"
 for dir in "${CONFIG_DIRS[@]}"; do
   copy_tree "$dir"
 done
+
+if [[ -d "$WALL_DIR" ]]; then
+  rm -rf "$ROOT/walls"
+  mkdir -p "$ROOT/walls"
+  find "$WALL_DIR" -maxdepth 1 -type f \
+    \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) \
+    -exec cp -p {} "$ROOT/walls/" \;
+else
+  printf 'skipped walls (no %s)\n' "$WALL_DIR"
+fi
 
 for file in "${HOME_FILES[@]}"; do
   if [[ -f "$SOURCE_HOME/$file" ]]; then

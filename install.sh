@@ -33,7 +33,7 @@ PACMAN_PACKAGES=(
   qt6-declarative
   qt6-wayland
   waybar
-  rofi-wayland
+  rofi
   kitty
   mako
   neovim
@@ -62,17 +62,33 @@ PACMAN_PACKAGES=(
   grim
   slurp
   libnotify
-  # wallpaper palette; `wal` is what the whole shell themes from
+  # wallpaper palette; `wal` itself is in the AUR list below
   python
-  python-pywal
   imagemagick
   xdg-user-dirs
   # shell
   zsh
+  # neovim: LazyVim's pickers and git UI, the tree-sitter parser builder, and
+  # what Mason needs to install language servers and linters (several are npm
+  # packages). prettier is the markdown formatter conform runs on save.
+  ripgrep
+  fd
+  fzf
+  lazygit
+  tree-sitter-cli
+  nodejs
+  npm
+  unzip
+  curl
+  wget
+  prettier
   # fonts: GeistMono is the bar and terminal face, Adwaita Sans the panels'
   otf-geist-mono-nerd
   ttf-nerd-fonts-symbols
   adwaita-fonts
+  # the p10k prompt is in awesome-fontconfig mode, which draws its icons from
+  # Font Awesome
+  woff2-font-awesome
   noto-fonts
   noto-fonts-emoji
   # the cursor theme hyprland.lua sets on startup
@@ -82,6 +98,9 @@ PACMAN_PACKAGES=(
 
 AUR_PACKAGES=(
   hyprshade
+  # Dropped from the official repos. In the pacman list it fails the whole
+  # transaction, and with it the install.
+  python-pywal
 )
 
 log() {
@@ -226,6 +245,14 @@ set_login_shell() {
   chsh -s "$zsh_path" || warn "Could not change the login shell; run: chsh -s $zsh_path"
 }
 
+install_wallpapers() {
+  log "Copying wallpapers into $WALL_DIR"
+  mkdir -p "$WALL_DIR"
+
+  # -n: a wallpaper already on this machine under the same name is kept.
+  [[ -d "${ROOT}/walls" ]] && cp -n "${ROOT}/walls/"* "$WALL_DIR/" 2>/dev/null || true
+}
+
 create_default_wallpaper() {
   log "Creating default wallpaper at $DEFAULT_WALL"
   mkdir -p "$WALL_DIR"
@@ -234,6 +261,16 @@ create_default_wallpaper() {
 
 pick_wallpaper() {
   mkdir -p "$WALL_DIR"
+
+  # The one hyprpaper.conf names, when it came along with the repo, so a new
+  # machine comes up on the same wallpaper (and so the same palette) as this
+  # one rather than whichever file sorts first.
+  local configured
+  configured="$(sed -n 's/^[[:space:]]*path[[:space:]]*=[[:space:]]*//p' "${ROOT}/.config/hypr/hyprpaper.conf" | head -n 1)"
+  if [[ -n "$configured" && -f "${WALL_DIR}/${configured##*/}" ]]; then
+    printf '%s\n' "${WALL_DIR}/${configured##*/}"
+    return 0
+  fi
 
   local wallpaper
   wallpaper="$(find "$WALL_DIR" -maxdepth 1 -type f \
@@ -315,6 +352,10 @@ bootstrap_nvim() {
   if ! nvim --headless '+Lazy! sync' +qa; then
     log "Neovim bootstrap skipped; open nvim once inside Hyprland to finish plugin setup"
   fi
+
+  # Mason installs its language servers and linters in the background on the
+  # first real launch, which a headless sync never gets to.
+  log "Mason tools install on the first normal nvim launch; :Mason shows progress"
 }
 
 print_notes() {
@@ -325,7 +366,7 @@ Install complete.
 Notes:
 - Configs installed into ${HOME}/.config, shell files into ${HOME}
 - Anything that was already there is in ${BACKUP_ROOT}
-- Wallpaper directory: ${WALL_DIR}
+- Wallpapers from the repo are in ${WALL_DIR}
 - The quickshell bar starts at login and is the notification daemon.
   Alt+B swaps it for waybar, Alt+Shift+B reloads it, and
   ~/.config/quickshell/bar/bar-switch.sh status says what is running.
@@ -358,6 +399,8 @@ main() {
   make_scripts_executable
   install_oh_my_zsh
   set_login_shell
+
+  install_wallpapers
 
   local wallpaper
   wallpaper="$(pick_wallpaper)"

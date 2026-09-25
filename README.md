@@ -19,6 +19,7 @@ Komputah-Dots/
 │   ├── mako/        notification daemon config (kept for the waybar fallback)
 │   └── nvim/        LazyVim
 ├── home/            .zshrc and .p10k.zsh
+├── walls/           the wallpapers, installed into ~/walls
 ├── install.sh       fresh machine -> this desktop
 └── sync-from-config.sh   live config -> this repo
 ```
@@ -188,8 +189,11 @@ What it does, in order:
 
 1. installs the pacman packages — Hyprland and its tools, quickshell and its Qt
    deps, waybar, rofi, kitty, neovim, PipeWire, NetworkManager, bluez, the
-   fonts (GeistMono Nerd for the bar, Adwaita Sans for panels), zsh
-2. bootstraps `yay` if missing and installs the AUR list (`hyprshade`)
+   fonts (GeistMono Nerd for the bar, Adwaita Sans for panels, Font Awesome
+   for the prompt), zsh, and Neovim's tools (ripgrep, fd, fzf, lazygit,
+   tree-sitter-cli, nodejs/npm for Mason, prettier)
+2. bootstraps `yay` if missing and installs the AUR list (`hyprshade`,
+   `python-pywal`)
 3. creates `~/Pictures/Screenshots`, `~/walls`, `~/.cache/waybar`,
    `~/.local/state/pomodoro`
 4. backs up existing configs, then copies `.config/*` into `~/.config` and
@@ -200,11 +204,13 @@ What it does, in order:
 7. rewrites every `/home/adi` path to your real home directory — QML has no `~`
    expansion, so the shell's palette source and pomodoro backend have to be
    absolute
-8. picks the first wallpaper in `~/walls` (generating a gradient if it is
-   empty), points hyprpaper and hyprlock at it, and generates the `pywal` cache
-   the whole shell themes from
+8. copies `walls/` into `~/walls` (without overwriting anything already there),
+   picks the wallpaper `hyprpaper.conf` names — or the first one in `~/walls`,
+   or a generated gradient if that is empty — points hyprpaper and hyprlock at
+   it, and generates the `pywal` cache the whole shell themes from
 9. enables `bluetooth.service` and `NetworkManager.service`
-10. syncs Neovim plugins
+10. syncs Neovim plugins; Mason installs its language servers and linters on
+    the first normal launch
 
 Then log out and back in — for zsh, and to start Hyprland with the shell up.
 
@@ -217,8 +223,6 @@ Then log out and back in — for zsh, and to start Hyprland with the shell up.
   class and the default pick is not the one driving the panel. Check
   `ls /sys/class/backlight` and adjust `hyprland.lua`, `waybar/config` and
   `quickshell/bar/Brightness.qml` together.
-- **Wallpapers.** Bring your own into `~/walls`; the installer only generates a
-  placeholder gradient.
 - **Lock screen font.** hyprlock asks for `SF Pro Display Bold`, which is not
   in the Arch repos. Without it, it falls back to a system face.
 - **VS Code.** `Alt+C` runs `code`, which the installer does not install.
@@ -230,7 +234,7 @@ Then log out and back in — for zsh, and to start Hyprland with the shell up.
 git status
 ```
 
-Copies whole trees rather than a hand-written list of files, so anything added
+Also copies the images in `~/walls` into `walls/`. Copies whole trees rather than a hand-written list of files, so anything added
 live is picked up without editing the script. Excluded on purpose: backups
 (`*.bak*`), caches (`__pycache__`), LazyVim starter leftovers (`.neoconf.json`,
 `lua/plugins/example.lua`), and config that is live but wired to nothing
